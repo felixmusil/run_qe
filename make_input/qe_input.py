@@ -1,7 +1,8 @@
 import ase
 import numpy as np
 import spglib as spg
-
+from custom_frame import frame2qe_format
+from utils import get_kpts
 # List of the Space groups that do not need special care
 NOPROBLEM = [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50,
              51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 6275, 76, 77, 78, 81, 83,
@@ -15,7 +16,7 @@ NOPROBLEM = [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49,
              192, 193, 194,195, 198, 200, 201, 205, 207, 208, 212, 213, 215, 218,
              221, 222, 223, 224]
 # List of spacegroups that need ibrav0 input type
-ibrav0 = [5, 8, 9, 12, 15,23, 24, 44, 45, 46, 71, 72, 73, 74,22, 42, 43,
+ibrav0 = [1,2,5, 8, 9, 12, 15,23, 24, 44, 45, 46, 71, 72, 73, 74,22, 42, 43,
           69, 70,79, 80, 82,87, 88, 97, 98, 107, 108, 109,110, 119, 120, 121, 122,
           139, 140, 141, 142,197, 199, 204, 206, 211, 214, 217, 220, 229, 230]
 # List of spacegroups that need to be modified
@@ -25,22 +26,56 @@ TOMODIFY = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 35,
             167, 196, 197, 199, 202, 203, 204, 206, 209, 210, 211, 214, 216, 217, 219, 220, 225, 226, 227,
             228, 229, 230]
 
-frame2change = {0: ibrav0,
+frame2change = {3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
+                7:[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121, 122,
+                   139, 140, 141, 142],
+                10:[22, 42, 43, 69, 70],
+                11:[23, 24, 44, 45, 46, 71, 72, 73, 74],
+                13:[5, 8, 9, 12, 15],
+                14:[1,2],
                 2:[196, 202, 203, 209, 210, 216, 219, 225, 226, 227, 228],
                 5:[146, 148, 155, 160, 161, 166, 167],
                 -9:[20, 21, 35, 36, 37, 38, 39, 40, 41, 63, 64, 65, 66, 67, 68],
                 -12:[3, 4, 6, 7, 10, 11, 13, 14],
 }
 
+def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
+                 zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
+                 calculation_type='"scf"',smearing=1e-2,
+                pressure=0,press_conv_thr=0.5,cell_factor=2,
+                etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
+                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],ppPath='"./pseudo/"',
+                 PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
+
+    new_crystal = frame2qe_format(crystal,spaceGroupIdx)
+
+    if Nkpt is not None:
+        kpt = list(get_kpts(new_crystal,Nkpt=Nkpt))
+    # pressure in kBar and en_tot/forces in a.u.
+    kwargs = dict(crystal=new_crystal,spaceGroupIdx=spaceGroupIdx,WyckTable=WyckTable,
+                  SGTable=SGTable,ElemTable=ElemTable,
+                  etot_conv_thr=etot_conv_thr, forc_conv_thr=forc_conv_thr,nstep=nstep,
+                 zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
+                  pressure=pressure, press_conv_thr=press_conv_thr, cell_factor=cell_factor,
+                 calculation_type=calculation_type,smearing=smearing,
+                 kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
+                 PP=PP)
+    if spaceGroupIdx in ibrav0:
+        qeInput = makeQEInput_ibrav0(**kwargs)
+    else:
+        qeInput = makeQEInput_sg(**kwargs)
+
+    return qeInput
 
 
 def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
-                 calculation_type='"scf"',
+                 calculation_type='"scf"',smearing=1e-2,
+                etot_conv_thr=1e-4, forc_conv_thr=1e-3,nstep=150,
+                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                  kpt = [2,2,2],kpt_offset = [0,0,0],ppPath='"./pseudo/"',
                  PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
-    
-    inputDic = {}
+
     
     elemInfo = ElemTable[ElemTable['z'] == zatom]
     species = [elemInfo['sym'].values[0],]*1
@@ -52,25 +87,31 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     wyck = [SG2wyckoff(spaceGroupIdx,WyckTable)]
     positions = crystal.get_scaled_positions()[0]
     cellParam = crystal.get_cell_lengths_and_angles()
-    ibrav = SG2ibrav(spaceGroupIdx,SGTable)
-    #multipicity = WyckTable[spaceGroupIdx]['Multiplicity'][0]
-    multipicity = crystal.get_number_of_atoms()
-
-    if int(0.2*multipicity*nvalence/2.) > 4:
-        nbnd = int(multipicity*nvalence/2.+int(0.2*multipicity*nvalence/2.))
+    ibrav = SG2ibrav(spaceGroupIdx)
+    Natom = crystal.get_number_of_atoms()
+    if ibrav == -12:
+        uniqueb = '.TRUE.'
     else:
-        nbnd = int(multipicity*nvalence/2.+4)
+        uniqueb = '.FALSE.'
+
+    nbnd = get_number_of_bands(Natom=Natom,Nvalence=nvalence)
+
+    d2r = np.pi / 180.
 
     # define name list of QE
     control = {'calculation' : calculation_type,
               'outdir' : '"./out/"',
               'prefix' : '"qe"',
-              'pseudo_dir' : '"../pseudo/"',
+              'pseudo_dir' : ppPath,
               'restart_mode' : '"from_scratch"',
               'verbosity' : '"high"',
               'wf_collect' : '.false.',
+              'nstep': '{:.0f}'.format(nstep),
+              'etot_conv_thr' : '{:.5f}'.format(etot_conv_thr*Natom),
+              'forc_conv_thr' : '{:.5f}'.format(forc_conv_thr),
         }
-    controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode','verbosity' ,'wf_collect']
+    controlKeys = ['calculation', 'outdir', 'prefix', 'pseudo_dir', 'restart_mode',
+                   'verbosity', 'wf_collect','nstep', 'etot_conv_thr', 'forc_conv_thr']
     system = {
               'ecutrho' :   '{:.5f}'.format(rhocutoff),
               'ecutwfc' :   '{:.5f}'.format(wfccutoff),
@@ -80,18 +121,26 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
               'ntyp' : str(1),
               'occupations' : '"smearing"',
               'smearing' : '"cold"',
-              'degauss' :   '1.0000000000d-02',
+              'degauss' :   '{:.6f}'.format(smearing),
               'space_group' : str(spaceGroupIdx),
+              'uniqueb':uniqueb,
               'A' : str(cellParam[0]),
               'B' : str(cellParam[1]),
               'C' : str(cellParam[2]),
-              'cosAB' : '{:.5f}'.format(np.cos(cellParam[5]*np.pi/180.)),
-              'cosAC' : '{:.5f}'.format(np.cos(cellParam[4]*np.pi/180.)),
-              'cosBC' : '{:.5f}'.format(np.cos(cellParam[3]*np.pi/180.)),
+              'cosAB' : '{:.5f}'.format(np.cos(cellParam[5]*d2r)),
+              'cosAC' : '{:.5f}'.format(np.cos(cellParam[4]*d2r)),
+              'cosBC' : '{:.5f}'.format(np.cos(cellParam[3]*d2r)),
         }
     syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
-               'occupations', 'smearing','degauss','space_group','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
+               'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
     electrons = {'conv_thr':'1.0000000000d-06'}
+    cellkeys = ['cell_factor', 'press', 'press_conv_thr']
+    # pressure in [KBar]
+    cell = {
+        'cell_factor': '{:.5f}'.format(cell_factor),
+        'press': '{:.5f}'.format(pressure),
+        'press_conv_thr': '{:.5f}'.format(press_conv_thr),
+    }
 
     # define cards of QE
     optionkey = 'unit'
@@ -106,9 +155,10 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 
     qeInput = ''
 
-    qeInput += makeNamelist('&CONTROL',control)
+    qeInput += makeNamelist('&CONTROL',control,controlKeys)
     qeInput += makeNamelist( '&SYSTEM' ,system,syskeys)
     qeInput += makeNamelist( '&ELECTRONS',electrons)
+    qeInput += makeNamelist('&CELL', cell)
     qeInput += makeCard(atomic_sp,cardKeys = atspkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(atomic_pos,cardKeys = atposkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(kpoints,cardKeys = kptkeys,optionKey = optionkey,T = False)
@@ -117,31 +167,27 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 
 
 def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
-                 zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
-                        kpt = [2,2,2],kpt_offset = [0,0,0],calculation_type='"scf"',
-                        ppPath='"./pseudo/"',PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
-    inputDic = {}
-    
+                 zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,smearing=1e-2,
+                pressure=0,press_conv_thr=0.5,cell_factor=2,
+                etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
+                kpt = [2,2,2],kpt_offset = [0,0,0],calculation_type='"scf"',
+                ppPath='"./pseudo/"',PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
+
     elemInfo = ElemTable[ElemTable['z'] == zatom]
     
     mass = [elemInfo['mass'].values[0]] # in atomic unit
     #PP = ['Si.pbe-n-rrkjus_psl.1.0.0.UPF']
     nvalence = elemInfo['val'].values[0]
     
-    (lattice, positions, numbers) = spg.find_primitive(crystal, symprec=1e-05, angle_tolerance=-1.0)
-    primitive_atoms = ase.Atoms(cell=lattice,scaled_positions=positions,numbers=numbers)
-    
-    positions = primitive_atoms.get_positions()
-    cell = primitive_atoms.get_cell()
+
+    positions = crystal.get_positions()
+    lattice = crystal.get_cell()
     ibrav = 0
-    Natom = primitive_atoms.get_number_of_atoms()
+    Natom = crystal.get_number_of_atoms()
     species = [elemInfo['sym'].values[0],]*Natom
-    
-    multiplicity = Natom
-    if int(0.2*multiplicity*nvalence/2.) > 4:
-        nbnd = int(multiplicity*nvalence/2.+int(0.2*multiplicity*nvalence/2.))
-    else:
-        nbnd = int(multiplicity*nvalence/2.+4)
+
+
+    nbnd = get_number_of_bands(Natom=Natom,Nvalence=nvalence)
 
     # define name list of QE
     control = {'calculation' : calculation_type,
@@ -151,8 +197,12 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
               'restart_mode' : '"from_scratch"',
               'verbosity' : '"high"',
               'wf_collect' : '.false.',
+              'nstep':'{:.0f}'.format(nstep),
+              'etot_conv_thr': '{:.5f}'.format(etot_conv_thr*Natom),
+              'forc_conv_thr': '{:.5f}'.format(forc_conv_thr),
         }
-    controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode','verbosity' ,'wf_collect']
+    controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode',
+                   'verbosity' ,'wf_collect','nstep','etot_conv_thr','forc_conv_thr']
     system = {
               'ecutrho' :   '{:.5f}'.format(rhocutoff),
               'ecutwfc' :   '{:.5f}'.format(wfccutoff),
@@ -162,11 +212,19 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
               'ntyp' : str(1),
               'occupations' : '"smearing"',
               'smearing' : '"cold"',
-              'degauss' :   '1.0000000000d-02',
+              'degauss' :   '{:.6f}'.format(smearing),
         }
     syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
                'occupations', 'smearing','degauss' ]
     electrons = {'conv_thr':'1.0000000000d-06'}
+
+    cellkeys = ['cell_factor', 'press', 'press_conv_thr']
+    # pressure in [KBar]
+    cell = {
+        'cell_factor': '{:.5f}'.format(cell_factor),
+        'press': '{:.5f}'.format(pressure) ,
+        'press_conv_thr': '{:.5f}'.format(press_conv_thr),
+    }
 
     # define cards of QE
     optionkey = 'unit'
@@ -176,15 +234,16 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
     atposkeys = ['species','positions']
     kpoints = {'K_POINTS':{'kpoints':kpt+kpt_offset},'unit':'automatic'}
     kptkeys = ['kpoints']
-    cell_param = {'CELL_PARAMETERS':{'cell':cell},'unit':'angstrom'}
+    cell_param = {'CELL_PARAMETERS':{'cell':lattice},'unit':'angstrom'}
     cellkeys = ['cell']
 
 
     qeInput = ''
 
-    qeInput += makeNamelist('&CONTROL',control)
+    qeInput += makeNamelist('&CONTROL',control,controlKeys)
     qeInput += makeNamelist( '&SYSTEM' ,system,syskeys)
     qeInput += makeNamelist( '&ELECTRONS',electrons)
+    qeInput += makeNamelist('&CELL', cell)
     qeInput += makeCard(atomic_sp,cardKeys = atspkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(atomic_pos,cardKeys = atposkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(kpoints,cardKeys = kptkeys,optionKey = optionkey,T = False)
@@ -236,6 +295,13 @@ def makeNamelist(namelistName,namelistDict,namelistKeys=None,
     namelistStr += '/' + endl
     return namelistStr
 
+
+def get_number_of_bands(Natom,Nvalence):
+    if int(0.2*Natom*Nvalence/2.) > 4:
+        nbnd = int(Natom*Nvalence/2.+int(0.2*Natom*Nvalence/2.))
+    else:
+        nbnd = int(Natom*Nvalence/2.+4)
+    return nbnd
 
 def SG2ibrav(spaceGroupIdx,SGTable=None):
     from raw_info import bravaisLattice2ibrav

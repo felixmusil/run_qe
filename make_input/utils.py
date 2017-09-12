@@ -1,5 +1,5 @@
 import numpy as np
-
+from raw_info import missClassificationCorrection
 
 
 def qp2ase(qpatoms):
@@ -39,7 +39,6 @@ def crystal2SpaceGroupIdx(crystal,symtol):
         #print spg.get_spacegroup(crystal,symprec=symtol)
         return -1
 
-missClassificationCorrection = {1: 2, 3: 10, 4: 11, 5: 12, 6: 10, 7: 13, 8: 12, 9: 15, 143: 174, 25: 47, 26: 51, 27: 49, 28: 51, 29: 57, 30: 53, 31: 59, 32: 55, 33: 62, 34: 58, 35: 65, 36: 63, 37: 66, 38: 65, 39: 67, 40: 63, 41: 64, 42: 69, 44: 71, 45: 72, 46: 74, 157: 189, 158: 188, 183: 191, 184: 192, 185: 193, 186: 194, 159: 190, 75: 83, 77: 84, 79: 87, 173: 176, 156: 187, 99: 123, 100: 127, 101: 132, 102: 136, 103: 124, 104: 128, 105: 131, 106: 135, 107: 139, 108: 140, 168: 175}
 
 def get_symprec(crystal,spaceGroupIdx):
     '''

@@ -5,8 +5,15 @@ import spglib as spg
 from qe_input import NOPROBLEM,frame2change,SG2ibrav
 
 
-def frame2qe(frame,sg):
-    ibrav = SG2ibrav(sg)
+def frame2qe_format(frame,sg):
+    if sg in NOPROBLEM:
+        return frame.copy()
+    else:
+        ibrav = SG2ibrav(sg)
+
+        change_func = ibrav2func[ibrav]
+        custom_frame, _, _ = change_func(frame,sg)
+        return custom_frame
 
 def get_ibrav0_frame(frame, sg):
     symprec = get_symprec(frame, sg)
@@ -124,3 +131,15 @@ def get_ibrav12_frame(frame, sg):
 
     cell_par = primitive_atoms.get_cell_lengths_and_angles()
     return primitive_atoms, cell_par, inequivalent_pos
+
+ibrav2func = {3: get_ibrav0_frame,
+                7:get_ibrav0_frame,
+                10:get_ibrav0_frame,
+                11:get_ibrav0_frame,
+                13:get_ibrav0_frame,
+                14:get_ibrav0_frame,
+                2:get_ibrav2_frame,
+                5:get_ibrav5_frame,
+                -9:get_ibrav9_frame,
+                -12:get_ibrav12_frame,
+}

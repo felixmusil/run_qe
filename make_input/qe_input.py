@@ -85,7 +85,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     
     
     wyck = [SG2wyckoff(spaceGroupIdx,WyckTable)]
-    positions = crystal.get_scaled_positions()[0]
+    positions = crystal.get_scaled_positions()[0].reshape((1,-1))
     cellParam = crystal.get_cell_lengths_and_angles()
     ibrav = SG2ibrav(spaceGroupIdx)
     Natom = crystal.get_number_of_atoms()
@@ -148,7 +148,8 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                                    'mass':mass,'PP':PP},'unit':''}
     atspkeys = ['species','mass','PP']
     atomic_pos = {'ATOMIC_POSITIONS':{'species':species, 'wickoffs':wyck,
-                                      'positions':positions},'unit':'crystal_sg'}
+                                      'positions':list(positions)},
+                  'unit':'crystal_sg'}
     atposkeys = ['species', 'wickoffs','positions']
     kpoints = {'K_POINTS':{'kpoints':kpt+kpt_offset},'unit':'automatic'}
     kptkeys = ['kpoints']
@@ -276,10 +277,11 @@ def makeCard(cardDict,cardKeys=None,optionKey='unit',
 
         for key,val in cardDict.items():
             if isinstance(val, dict):
-                l = [val[cardKey] for cardKey in cardKeys] 
+                l = [val[cardKey] for cardKey in cardKeys]
                 ll = map(list, izip_longest(*l)) if T else l
-                cardStr += stl + tabulate(ll, tablefmt="plain").replace('[','').replace(']','').replace(',','').replace('\n',endl+stl) + endl
-        
+                cardStr += stl + tabulate(ll, tablefmt="plain")\
+                    .replace('[','').replace(']','').replace(',','').replace('\n',endl+stl) + endl
+
         return cardStr
     else:
         print 'cardDict has no key called: {} (optionKey)'.format(optionKey)

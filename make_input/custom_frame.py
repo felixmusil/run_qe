@@ -2,10 +2,11 @@ import numpy as np
 from utils import rotation_matrix,isCellSkewed,unskewCell,get_symprec,get_relative_angle
 import ase
 import spglib as spg
-from qe_input import NOPROBLEM,frame2change,SG2ibrav
+
 
 
 def frame2qe_format(frame,sg):
+    from qe_input import NOPROBLEM, SG2ibrav
     if sg in NOPROBLEM:
         return frame.copy()
     else:

@@ -1,7 +1,6 @@
+import ase
 import numpy as np
 import spglib as spg
-import ase
-from utils import rotation_matrix,isCellSkewed,unskewCell,get_symprec,get_relative_angle
 
 # List of the Space groups that do not need special care
 NOPROBLEM = [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50,

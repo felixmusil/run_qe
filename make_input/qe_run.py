@@ -101,10 +101,10 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks=1,
     #  Set up the echo command and direct the output to a pipe
     exitState = sp.call('sbatch {}'.format(submit_scriptName),
                         stdout=open(jobName, 'a'),stderr=open(errName, 'w'),shell=True)
-
-    with open(jobName,'r') as f:
-        lines = f.readlines()
-        print lines[-1]
+    if verbose:
+        with open(jobName,'r') as f:
+            lines = f.readlines()
+            print lines[-1]
 
     return exitState
 

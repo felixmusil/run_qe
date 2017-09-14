@@ -94,7 +94,7 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks=1,
                                        cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     with open(inputName,'w') as f:
-        f.write(input)
+        f.write(input_str)
     with open(submit_scriptName,'w') as f:
         f.write(submit_script)
 

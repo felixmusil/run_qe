@@ -165,7 +165,12 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     atomic_sp = {'ATOMIC_SPECIES':{'species':np.unique(species), 
                                    'mass':mass,'PP':PP},'unit':''}
     atspkeys = ['species','mass','PP']
-    atomic_pos = {'ATOMIC_POSITIONS':{'species':species, 'wickoffs':wyck,
+    if spaceGroupIdx in dont_print_wyck:
+        atomic_pos = {'ATOMIC_POSITIONS': {'species': species, 'wickoffs': '',
+                                           'positions': list(positions)},
+                      'unit': 'crystal_sg'}
+    else:
+        atomic_pos = {'ATOMIC_POSITIONS':{'species':species, 'wickoffs':wyck,
                                       'positions':list(positions)},
                   'unit':'crystal_sg'}
     atposkeys = ['species', 'wickoffs','positions']

@@ -11,7 +11,7 @@ calculation_type = '"scf"'
 
 zatom = 14
 
-kpt = [2,2,1]
+kpt = [2,2,2]
 Nkpt = None
 # rhocutoff ,wfccutoff = None,None
 rhocutoff ,wfccutoff = 10*4,10
@@ -26,7 +26,7 @@ node = 1
 tasks = 8
 cpus_per_tasks = 2
 mem = 63000
-time = '02:00:00'
+time = '00:30:00'
 debug = False
 
 dataPath = '/scratch/musil/qmat/data/'

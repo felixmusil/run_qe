@@ -10,20 +10,16 @@ from tqdm import tqdm
 calculation_type = '"scf"'
 
 zatom = 14
-sgs = [229,108,69,15,227,160,37,13,57,158,28,75,144,95,180,205,224,5,7,4]
 
-kpt = [2,2,2]
-Nkpts = [1000,2000]
-rhocutoff ,wfccutoff = None,None
-# rhocutoff ,wfccutoff = 20*4,20
+kpt = [2,2,1]
+Nkpt = None
+# rhocutoff ,wfccutoff = None,None
+rhocutoff ,wfccutoff = 10*4,10
 smearing = 1e-2
 etot_conv_thr = 1e-4
 forc_conv_thr = 1e-3
 nstep = 150
-scf_conv_thr = 1e-6
-
-dataPath = '/scratch/musil/qmat/data/'
-ppPath='"/scratch/musil/qmat/run_qe/pseudo/SSSP_acc_PBE/"'
+scf_conv_thr = 1e-1
 
 hpc = 'deneb'
 node = 1
@@ -32,6 +28,9 @@ cpus_per_tasks = 2
 mem = 63000
 time = '02:00:00'
 debug = False
+
+dataPath = '/scratch/musil/qmat/data/'
+ppPath='"/scratch/musil/qmat/run_qe/pseudo/SSSP_acc_PBE/"'
 
 
 fileNames = {}
@@ -53,8 +52,8 @@ with open(fileNames['wyck'],'rb') as f:
 SGTable = pd.read_pickle(fileNames['general info'])
 ElemTable = pd.read_pickle(fileNames['elements info'])
 
-dirNames = {(sg,it,Nkpt):dataPath + 'check_ktp_conv/sg_{}-f_{}-Nkpt_{}'.format(sg,it,Nkpt)
-            for sg in sgs for it in range(len(crystals[sg])) for Nkpt in Nkpts}
+dirNames = {(sg,it):dataPath + 'check_input_errors/sg_{}-f_{}'.format(sg,it)
+            for sg in  crystals for it in crystals[sg]}
 
 # crystal = crystals[sg][it]
 # dirName = dataPath + 'test_run/sg_{}-f_{}'.format(sg,it)
@@ -63,14 +62,14 @@ dirNames = {(sg,it,Nkpt):dataPath + 'check_ktp_conv/sg_{}-f_{}-Nkpt_{}'.format(s
 # print dirName
 print 'sending the calcs'
 pbar = tqdm(total=len(dirNames),ascii=True)
-for (sg,it,Nkpt),dirName in dirNames.iteritems():
+for (sg,it),dirName in dirNames.iteritems():
     crystal = crystals[sg][it]
     input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                     zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
                     calculation_type=calculation_type,smearing=smearing,
                     pressure=0,press_conv_thr=0.5,cell_factor=2,
                     etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
-                    scf_conv_thr=1e-6,
+                    scf_conv_thr=scf_conv_thr,
                     kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
                     ppPath=ppPath)
 

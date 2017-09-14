@@ -23,6 +23,15 @@ scf_conv_thr = 1e-2
 dataPath = '/scratch/musil/qmat/data/'
 ppPath='"/scratch/musil/qmat/run_qe/pseudo/SSSP_acc_PBE/"'
 
+hpc = 'deneb'
+node = 1
+tasks = 8
+cpus_per_tasks = 2
+mem = 63000
+time = '00:30:00'
+debug = True
+
+
 fileNames = {}
 infoPath = './info/'
 structurePath = './structures/'
@@ -60,8 +69,8 @@ input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                 kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
                 ppPath=ppPath)
 
-
-exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks=1,
-                cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False)
+print 'sending the calc'
+exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node, tasks=tasks,
+                cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
 print exitstatus

@@ -53,7 +53,7 @@ SGTable = pd.read_pickle(fileNames['general info'])
 ElemTable = pd.read_pickle(fileNames['elements info'])
 
 dirNames = {(sg,it):dataPath + 'check_input_errors/sg_{}-f_{}'.format(sg,it)
-            for sg in  crystals for it in crystals[sg]}
+            for sg in  crystals for it in range(len(crystals[sg]))}
 
 # crystal = crystals[sg][it]
 # dirName = dataPath + 'test_run/sg_{}-f_{}'.format(sg,it)

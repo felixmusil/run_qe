@@ -3,6 +3,9 @@ import numpy as np
 import spglib as spg
 from custom_frame import frame2qe_format
 from utils import get_kpts
+
+from SSSP_acc_PBE_info import PP_names,rhocutoffs,wfccutoffs
+
 # List of the Space groups that do not need special care
 NOPROBLEM = [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50,
              51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 6275, 76, 77, 78, 81, 83,
@@ -42,15 +45,22 @@ frame2change = {3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
 }
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
-                 zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
-                 calculation_type='"scf"',smearing=1e-2,
+                zatom = 14,rhocutoff = None,wfccutoff = None,
+                calculation_type='"scf"',smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,
-                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],ppPath='"./pseudo/"',
-                 PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
+                kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],
+                ppPath='"./pseudo/SSSP_acc_PBE/"'):
 
     new_crystal = frame2qe_format(crystal,spaceGroupIdx)
+
+    PP = [PP_names[zatom]]
+
+    if wfccutoff is None:
+        wfccutoff = wfccutoffs[zatom]
+    if rhocutoff is None:
+        rhocutoff = rhocutoffs[zatom]
 
     if Nkpt is not None:
         kpt = list(get_kpts(new_crystal,Nkpt=Nkpt))

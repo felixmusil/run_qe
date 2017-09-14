@@ -21,11 +21,11 @@ def get_ibrav0_frame(frame, sg):
     if symprec is None:
         print 'Not possible'
         return None
-    (lattice, positions, numbers) = spg.standardize_cell(
-                            frame, to_primitive=True,no_idealize=False,
-                            symprec=symprec, angle_tolerance=-1.0)
-    primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
-
+    # (lattice, positions, numbers) = spg.standardize_cell(
+    #                         frame, to_primitive=True,no_idealize=False,
+    #                         symprec=symprec, angle_tolerance=-1.0)
+    # primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
+    primitive_atoms = frame
     cell = primitive_atoms.get_cell()
     pos = primitive_atoms.get_positions()
 
@@ -96,6 +96,13 @@ def get_ibrav5_frame(frame, sg):
     return primitive_atoms, cell_par, inequivalent_pos
 
 def get_ibrav9_frame(frame, sg):
+    '''
+    Seems that ibrav=-9 is not compatible with spacegroup input in qe 6.1
+    
+    :param frame: 
+    :param sg: 
+    :return: 
+    '''
     symprec = get_symprec(frame, sg)
     if symprec is None:
         print 'Not possible'
@@ -141,6 +148,6 @@ ibrav2func = {3: get_ibrav0_frame,
                 14:get_ibrav0_frame,
                 2:get_ibrav2_frame,
                 5:get_ibrav5_frame,
-                -9:get_ibrav9_frame,
+                -9:get_ibrav0_frame,
                 -12:get_ibrav12_frame,
 }

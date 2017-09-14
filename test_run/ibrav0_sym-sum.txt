@@ -1,0 +1,65 @@
+Several syms are not detected because sym is incomensurate with fft grid:
+	70
+
+
+sg 73:
+	QE detects 4 syms instead of 8.
+sg 211:
+	QE detects 48 syms instead of 24. It does not recognize the sym since it thinks it is a supercell
+sg 204:
+	same as 211
+sg 36:
+	spglib detects 7 as sg 63 which as 8 syms instead of 4.
+	QE does the same but for the structure nb 7.
+sg 15:
+	QE miss 2 syms out of 4 in some cases while other are well detected
+sg 64:
+	QE supercell so it disable the 4 translational and fractional syms
+sg 121:
+	QE detect the right syms with 8 additional ones in 1 case
+sg 88:
+	QE miss the syms or find wrong ones. others are good
+sg 74:
+	QE supercell so it disable the 4 translational and fractional syms
+sg 68:
+	QE supercell so it disable the 4 translational and fractional syms
+sg 119:
+	QE detects good syms and 8 additional ones
+sg 197:
+	QE detects good syms and 12 additional ones
+sg 21:
+	QE detects good syms and 4 additional ones
+sg 42:
+	QE detects wrong syms in 1 instance
+sg 72:
+	QE supercell so it disable the 4 translational and fractional syms
+sg 45:
+	QE supercell so it disable the 2 translational and fractional syms and detects 2 additional wrong ones 
+sg 142:
+	QE supercell detects wrong syms im 1 instance
+sg 141:
+	QE supercell detects wrong syms im 1 instance
+sg 217:
+	QE finds 24 inversion symsthat are wrong
+sg 82:
+	QE finds 4 inversion symsthat are wrong
+sg 67:
+	QE supercell so it disable the 4 translational and fractional syms
+sg 40:
+	QE supercell so it disable the 2 translational and fractional syms and adds 2 wrong inversions
+sg 37:
+	QE supercell so it disable the 2 translational and fractional syms and adds 2 wrong inversions
+sg 20:
+	QE finds 2 good and miss 2 fractional syms
+sg 98:
+	QE doesn't find a sym
+
+
+All the considered sg have a few representatives that seem properly detected (no explicit check done here).
+
+
+
+
+
+
+

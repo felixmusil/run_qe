@@ -16,11 +16,13 @@ NOPROBLEM = [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49,
              192, 193, 194,195, 198, 200, 201, 205, 207, 208, 212, 213, 215, 218,
              221, 222, 223, 224]
 # List of spacegroups that need ibrav0 input type
-ibrav0 = [1,2,5, 8, 9, 12, 15,23, 24, 44, 45, 46, 71, 72, 73, 74,22, 42, 43,
+ibrav0 = [5, 8, 9, 12, 15,23, 24,20, 21, 35, 36, 37, 38, 39, 40, 41, 63,
+          64, 65, 66, 67, 68,
+          44, 45, 46, 71, 72, 73, 74,22, 42, 43,
           69, 70,79, 80, 82,87, 88, 97, 98, 107, 108, 109,110, 119, 120, 121, 122,
           139, 140, 141, 142,197, 199, 204, 206, 211, 214, 217, 220, 229, 230]
 # List of spacegroups that need to be modified
-TOMODIFY = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 35, 36, 37, 38, 39, 40, 41,
+TOMODIFY = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 35, 36, 37, 38, 39, 40, 41,
             42, 43, 44, 45, 46, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 79, 80, 82, 87, 88, 97,
             98, 107, 108, 109, 110, 119, 120, 121, 122, 139, 140, 141, 142, 146, 148, 155, 160, 161, 166,
             167, 196, 197, 199, 202, 203, 204, 206, 209, 210, 211, 214, 216, 217, 219, 220, 225, 226, 227,
@@ -44,6 +46,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  calculation_type='"scf"',smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
+                scf_conv_thr=1e-6,
                  kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],ppPath='"./pseudo/"',
                  PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
 
@@ -56,6 +59,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                   SGTable=SGTable,ElemTable=ElemTable,
                   etot_conv_thr=etot_conv_thr, forc_conv_thr=forc_conv_thr,nstep=nstep,
                  zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
+                  scf_conv_thr=scf_conv_thr,
                   pressure=pressure, press_conv_thr=press_conv_thr, cell_factor=cell_factor,
                  calculation_type=calculation_type,smearing=smearing,
                  kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
@@ -72,6 +76,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
                  calculation_type='"scf"',smearing=1e-2,
                 etot_conv_thr=1e-4, forc_conv_thr=1e-3,nstep=150,
+                scf_conv_thr=1e-6,
                  pressure=0,press_conv_thr=0.5,cell_factor=2,
                  kpt = [2,2,2],kpt_offset = [0,0,0],ppPath='"./pseudo/"',
                  PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
@@ -93,7 +98,8 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
         uniqueb = '.TRUE.'
     else:
         uniqueb = '.FALSE.'
-
+    # if ibrav == -9:
+    #     ibrav = 9
     nbnd = get_number_of_bands(Natom=Natom,Nvalence=nvalence)
 
     d2r = np.pi / 180.
@@ -133,7 +139,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
         }
     syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
                'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
-    electrons = {'conv_thr':'1.0000000000d-06'}
+    electrons = {'conv_thr':'{:.8f}'.format(scf_conv_thr)}
     cellkeys = ['cell_factor', 'press', 'press_conv_thr']
     # pressure in [KBar]
     cell = {
@@ -171,6 +177,7 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
+                 scf_conv_thr=1e-6,
                 kpt = [2,2,2],kpt_offset = [0,0,0],calculation_type='"scf"',
                 ppPath='"./pseudo/"',PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
 
@@ -217,7 +224,7 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
         }
     syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
                'occupations', 'smearing','degauss' ]
-    electrons = {'conv_thr':'1.0000000000d-06'}
+    electrons = {'conv_thr':'{:.8f}'.format(scf_conv_thr)}
 
     cellkeys = ['cell_factor', 'press', 'press_conv_thr']
     # pressure in [KBar]

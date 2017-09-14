@@ -29,10 +29,10 @@ def run_qe_local(input,dirName,verbose=False,
     exitState = sp.call('{}mpirun -np {:.0f} {}pw.x {}'.format(path2mpi,np,path2pw,param)
                             , stdout=open(outputName, 'w'),
                             stderr=open(errName, 'w'), shell=True)
-
+    error = 'No error'
     if exitState:
         print dirName
         with open(outputName,'r') as f:
-            errors = f.read()
+            error = f.read()
 
-    return exitState,errors
+    return exitState,error

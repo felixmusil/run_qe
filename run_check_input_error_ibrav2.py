@@ -69,7 +69,7 @@ for (sg,it),dirName in dirNames.iteritems():
                     calculation_type=calculation_type,smearing=smearing,
                     pressure=0,press_conv_thr=0.5,cell_factor=2,
                     etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
-                    scf_conv_thr=scf_conv_thr,
+                    scf_conv_thr=scf_conv_thr,print_forces=False,
                     kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
                     ppPath=ppPath)
 

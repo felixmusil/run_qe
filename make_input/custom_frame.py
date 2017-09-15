@@ -6,9 +6,15 @@ import spglib as spg
 
 
 def frame2qe_format(frame,sg):
-    from qe_input import NOPROBLEM, SG2ibrav
+    from qe_input import NOPROBLEM, SG2ibrav,tricky_sg
     if sg in NOPROBLEM:
         return frame.copy()
+    if sg in tricky_sg:
+        ibrav = 0
+
+        change_func = ibrav2func[ibrav]
+        custom_frame, _, _ = change_func(frame, sg)
+        return custom_frame
     else:
         ibrav = SG2ibrav(sg)
 
@@ -51,7 +57,7 @@ def get_ibrav2_frame(frame, sg):
     rot = rotation_matrix(axis, theta)
 
     cellp = np.dot(cell, rot.T)
-    cellp[np.abs(cellp) < 1e-10] = 0.
+    cellp[np.abs(cellp) < 1e-7] = 0.
     posp = np.dot(pos, rot.T)
     inequivalent_pos = posp[0]
 
@@ -59,7 +65,7 @@ def get_ibrav2_frame(frame, sg):
     primitive_atoms.set_positions(posp)
 
     # a = primitive_atoms.get_cell_lengths_and_angles()[0] * 2
-    a = cellp[cellp>0][0] * 2
+    a = cellp[cellp>1e-1][0] * 2
     # only a is used by QE
     b, c, alpha, beta, gamma = [0.] * 5
     cell_par = [a, b, c, alpha, beta, gamma]

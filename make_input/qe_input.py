@@ -45,8 +45,11 @@ frame2change = {3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
                 -9:[20, 21, 35, 36, 37, 38, 39, 40, 41, 63, 64, 65, 66, 67, 68],
                 -12:[3, 4, 6, 7, 10, 11, 13, 14],
 }
+# list of space group that are in the missclassification list and really do not match
+# the sg idx. they are run as ibrav0
+tricky_sg = [33,29]
 
-dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169]
+dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169,145,78,19]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,
@@ -84,7 +87,10 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  calculation_type=calculation_type,smearing=smearing,
                  kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
                  PP=PP)
+
     if spaceGroupIdx in ibrav0:
+        qeInput = makeQEInput_ibrav0(**kwargs)
+    elif spaceGroupIdx in tricky_sg:
         qeInput = makeQEInput_ibrav0(**kwargs)
     else:
         qeInput = makeQEInput_sg(**kwargs)

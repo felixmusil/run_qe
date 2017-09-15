@@ -46,7 +46,7 @@ frame2change = {3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
                 -12:[3, 4, 6, 7, 10, 11, 13, 14],
 }
 
-dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169,]
+dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,

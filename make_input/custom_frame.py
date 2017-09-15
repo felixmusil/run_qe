@@ -59,7 +59,7 @@ def get_ibrav2_frame(frame, sg):
     primitive_atoms.set_positions(posp)
 
     # a = primitive_atoms.get_cell_lengths_and_angles()[0] * 2
-    a = cellp[cellp>0][0]
+    a = cellp[cellp>0][0] * 2
     # only a is used by QE
     b, c, alpha, beta, gamma = [0.] * 5
     cell_par = [a, b, c, alpha, beta, gamma]

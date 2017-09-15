@@ -94,3 +94,22 @@ def finishedProperly(fn):
         return True
     else:
         return False
+
+def get_energy_per_atom(fn):
+    '''
+    get the energy per atom in eV from a qe.out
+    :param fn: 
+    :return: dic with energy 'en [eV/atom]' and 
+        info from dirname, e.g. {'en [eV/atom]': -154.6159,'Natom':4.0, 'sg': 35, 'f': 1}
+    '''
+    Ryd2eV = 13.605698066
+    str_patterns = ['total energy','number of atoms/cell']
+    info = fn2info(fn)
+    if finishedProperly(fn):
+        s = get_patterns(fn,str_patterns)
+        nat = extract_floats(s['number of atoms/cell'][0])[0]
+        en = extract_floats(s['total energy'][0])[0]*Ryd2eV / nat
+        info.update({'en [eV/atom]':en,'Natom':nat})
+        return info
+    else:
+        return None

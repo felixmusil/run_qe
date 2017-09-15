@@ -44,16 +44,21 @@ frame2change = {3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
                 -12:[3, 4, 6, 7, 10, 11, 13, 14],
 }
 
-dont_print_wyck = [144,7,227,4]
+dont_print_wyck = [144,7,227,4,228]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,
                 calculation_type='"scf"',smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
-                scf_conv_thr=1e-6,
+                scf_conv_thr=1e-6,print_forces=True,print_stress=False,
+                restart=False,
                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],
                 ppPath='"./pseudo/SSSP_acc_PBE/"'):
+
+    restart_mode = '"from_scratch"'
+    if restart:
+        restart_mode = '"restart"'
 
     new_crystal = frame2qe_format(crystal,spaceGroupIdx)
 
@@ -71,7 +76,8 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                   SGTable=SGTable,ElemTable=ElemTable,
                   etot_conv_thr=etot_conv_thr, forc_conv_thr=forc_conv_thr,nstep=nstep,
                  zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
-                  scf_conv_thr=scf_conv_thr,
+                  scf_conv_thr=scf_conv_thr,print_forces=print_forces,
+                  print_stress=print_stress,restart_mode=restart_mode,
                   pressure=pressure, press_conv_thr=press_conv_thr, cell_factor=cell_factor,
                  calculation_type=calculation_type,smearing=smearing,
                  kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
@@ -86,9 +92,10 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 
 def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
-                 calculation_type='"scf"',smearing=1e-2,
+                 calculation_type='"scf"',restart_mode = '"from_scratch"',
+                   smearing=1e-2,
                 etot_conv_thr=1e-4, forc_conv_thr=1e-3,nstep=150,
-                scf_conv_thr=1e-6,
+                scf_conv_thr=1e-6,print_forces=True,print_stress=False,
                  pressure=0,press_conv_thr=0.5,cell_factor=2,
                  kpt = [2,2,2],kpt_offset = [0,0,0],ppPath='"./pseudo/"',
                  PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
@@ -116,20 +123,30 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 
     d2r = np.pi / 180.
 
+    tprnfor = '.false.'
+    if print_forces:
+        tprnfor = '.true.'
+    tstress = '.false.'
+    if print_stress:
+        tstress = '.true.'
+
+
     # define name list of QE
     control = {'calculation' : calculation_type,
               'outdir' : '"./out/"',
               'prefix' : '"qe"',
               'pseudo_dir' : ppPath,
-              'restart_mode' : '"from_scratch"',
+              'restart_mode' : restart_mode,
               'verbosity' : '"high"',
               'wf_collect' : '.false.',
+               'tprnfor': tprnfor,
+               'tstress': tstress,
               'nstep': '{:.0f}'.format(nstep),
               'etot_conv_thr' : '{:.5f}'.format(etot_conv_thr*Natom),
               'forc_conv_thr' : '{:.5f}'.format(forc_conv_thr),
         }
     controlKeys = ['calculation', 'outdir', 'prefix', 'pseudo_dir', 'restart_mode',
-                   'verbosity', 'wf_collect','nstep', 'etot_conv_thr', 'forc_conv_thr']
+                   'verbosity', 'wf_collect','tprnfor','tstress','nstep', 'etot_conv_thr', 'forc_conv_thr']
     system = {
               'ecutrho' :   '{:.5f}'.format(rhocutoff),
               'ecutwfc' :   '{:.5f}'.format(wfccutoff),
@@ -193,8 +210,9 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
+                restart_mode = '"from_scratch"',
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
-                 scf_conv_thr=1e-6,
+                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
                 kpt = [2,2,2],kpt_offset = [0,0,0],calculation_type='"scf"',
                 ppPath='"./pseudo/"',PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
 
@@ -214,20 +232,29 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
 
     nbnd = get_number_of_bands(Natom=Natom,Nvalence=nvalence)
 
+    tprnfor = '.false.'
+    if print_forces:
+        tprnfor = '.true.'
+    tstress = '.false.'
+    if print_stress:
+        tstress = '.true.'
+
     # define name list of QE
     control = {'calculation' : calculation_type,
               'outdir' : '"./out/"',
               'prefix' : '"qe"',
               'pseudo_dir' : ppPath,
-              'restart_mode' : '"from_scratch"',
+              'restart_mode' : restart_mode,
               'verbosity' : '"high"',
               'wf_collect' : '.false.',
+               'tprnfor': tprnfor,
+               'tstress': tstress,
               'nstep':'{:.0f}'.format(nstep),
               'etot_conv_thr': '{:.5f}'.format(etot_conv_thr*Natom),
               'forc_conv_thr': '{:.5f}'.format(forc_conv_thr),
         }
     controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode',
-                   'verbosity' ,'wf_collect','nstep','etot_conv_thr','forc_conv_thr']
+                   'verbosity' ,'wf_collect','tprnfor','tstress','nstep','etot_conv_thr','forc_conv_thr']
     system = {
               'ecutrho' :   '{:.5f}'.format(rhocutoff),
               'ecutwfc' :   '{:.5f}'.format(wfccutoff),

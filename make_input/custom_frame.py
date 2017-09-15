@@ -95,6 +95,32 @@ def get_ibrav5_frame(frame, sg):
     cell_par = [a, b, c, alpha, beta, gamma]
     return primitive_atoms, cell_par, inequivalent_pos
 
+def get_ibrav8_frame(frame, sg):
+    '''
+    
+    :param frame: 
+    :param sg: 
+    :return: 
+    '''
+    symprec = get_symprec(frame, sg)
+    if symprec is None:
+        print 'Not possible'
+        return None
+    (lattice, positions, numbers) = spg.standardize_cell(
+        frame, to_primitive=True, no_idealize=False,
+        symprec=symprec, angle_tolerance=-1.0)
+    primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
+
+    pos = primitive_atoms.get_positions()
+
+    inequivalent_pos = pos[0]
+
+    a, b, c, _, _, _ = primitive_atoms.get_cell_lengths_and_angles()
+    # only a is used by QE
+    alpha, beta, gamma = [0.] * 3
+    cell_par = [a, b, c, alpha, beta, gamma]
+    return primitive_atoms, cell_par, inequivalent_pos
+
 def get_ibrav9_frame(frame, sg):
     '''
     Seems that ibrav=-9 is not compatible with spacegroup input in qe 6.1
@@ -148,6 +174,7 @@ ibrav2func = {3: get_ibrav0_frame,
                 14:get_ibrav0_frame,
                 2:get_ibrav2_frame,
                 5:get_ibrav5_frame,
+                8:get_ibrav8_frame,
                 -9:get_ibrav0_frame,
                 -12:get_ibrav12_frame,
 }

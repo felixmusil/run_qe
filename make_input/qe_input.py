@@ -65,7 +65,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     if restart:
         restart_mode = '"restart"'
 
-    new_crystal = frame2qe_format(crystal,spaceGroupIdx)
+    new_crystal,cell_par, inequivalent_pos = frame2qe_format(crystal,spaceGroupIdx)
 
     PP = [PP_names[zatom]]
 
@@ -77,7 +77,8 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     if Nkpt is not None:
         kpt = list(get_kpts(new_crystal,Nkpt=Nkpt))
     # pressure in kBar and en_tot/forces in a.u.
-    kwargs = dict(crystal=new_crystal,spaceGroupIdx=spaceGroupIdx,WyckTable=WyckTable,
+    kwargs = dict(crystal=new_crystal,cell_par=cell_par, inequivalent_pos=inequivalent_pos,
+                  spaceGroupIdx=spaceGroupIdx,WyckTable=WyckTable,
                   SGTable=SGTable,ElemTable=ElemTable,
                   etot_conv_thr=etot_conv_thr, forc_conv_thr=forc_conv_thr,nstep=nstep,
                  zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
@@ -101,7 +102,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,
                  calculation_type='"scf"',restart_mode = '"from_scratch"',
-                   smearing=1e-2,
+                   smearing=1e-2,cell_par=None, inequivalent_pos=None ,
                 etot_conv_thr=1e-4, forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
                  pressure=0,press_conv_thr=0.5,cell_factor=2,
@@ -115,11 +116,18 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     #PP = ['Si.pbe-n-rrkjus_psl.1.0.0.UPF']
     nvalence = elemInfo['val'].values[0]
     
-    
+
     wyck = [SG2wyckoff(spaceGroupIdx,WyckTable)]
-    positions = crystal.get_scaled_positions()[0].reshape((1,-1))
-    cellParam = crystal.get_cell_lengths_and_angles()
+
     ibrav = SG2ibrav(spaceGroupIdx)
+
+    if cell_par is not None and inequivalent_pos  is not None:
+        positions = inequivalent_pos
+        cellParam = cell_par
+    else:
+        positions = crystal.get_scaled_positions()[0].reshape((1, -1))
+        cellParam = crystal.get_cell_lengths_and_angles()
+
     Natom = crystal.get_number_of_atoms()
     if ibrav == -12:
         uniqueb = '.TRUE.'
@@ -150,14 +158,14 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                'tprnfor': tprnfor,
                'tstress': tstress,
               'nstep': '{:.0f}'.format(nstep),
-              'etot_conv_thr' : '{:.5f}'.format(etot_conv_thr*Natom),
-              'forc_conv_thr' : '{:.5f}'.format(forc_conv_thr),
+              'etot_conv_thr' : '{:.8f}'.format(etot_conv_thr*Natom),
+              'forc_conv_thr' : '{:.8f}'.format(forc_conv_thr),
         }
     controlKeys = ['calculation', 'outdir', 'prefix', 'pseudo_dir', 'restart_mode',
                    'verbosity', 'wf_collect','tprnfor','tstress','nstep', 'etot_conv_thr', 'forc_conv_thr']
     system = {
-              'ecutrho' :   '{:.5f}'.format(rhocutoff),
-              'ecutwfc' :   '{:.5f}'.format(wfccutoff),
+              'ecutrho' :   '{:.0f}'.format(rhocutoff),
+              'ecutwfc' :   '{:.0f}'.format(wfccutoff),
               'ibrav' : str(ibrav),
               'nat' : str(1),
               'nbnd' : str(nbnd),
@@ -170,9 +178,9 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
               'A' : str(cellParam[0]),
               'B' : str(cellParam[1]),
               'C' : str(cellParam[2]),
-              'cosAB' : '{:.5f}'.format(np.cos(cellParam[5]*d2r)),
+              'cosAB' : '{:.5f}'.format(np.cos(cellParam[3]*d2r)),
               'cosAC' : '{:.5f}'.format(np.cos(cellParam[4]*d2r)),
-              'cosBC' : '{:.5f}'.format(np.cos(cellParam[3]*d2r)),
+              'cosBC' : '{:.5f}'.format(np.cos(cellParam[5]*d2r)),
         }
     syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
                'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
@@ -218,7 +226,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,smearing=1e-2,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
-                restart_mode = '"from_scratch"',
+                restart_mode = '"from_scratch"',cell_par=None, inequivalent_pos=None ,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                  scf_conv_thr=1e-6,print_forces=True,print_stress=False,
                 kpt = [2,2,2],kpt_offset = [0,0,0],calculation_type='"scf"',
@@ -230,9 +238,14 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
     #PP = ['Si.pbe-n-rrkjus_psl.1.0.0.UPF']
     nvalence = elemInfo['val'].values[0]
     
+    if cell_par is not None and inequivalent_pos  is not None:
+        # get_ibrav0_atoms gives the positions and cell instead of inequivalent_pos and cell_par
+        positions = inequivalent_pos
+        lattice = cell_par
+    else:
+        positions = crystal.get_positions()
+        lattice = crystal.get_cell()
 
-    positions = crystal.get_positions()
-    lattice = crystal.get_cell()
     ibrav = 0
     Natom = crystal.get_number_of_atoms()
     species = [elemInfo['sym'].values[0],]*Natom
@@ -258,14 +271,14 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
                'tprnfor': tprnfor,
                'tstress': tstress,
               'nstep':'{:.0f}'.format(nstep),
-              'etot_conv_thr': '{:.5f}'.format(etot_conv_thr*Natom),
-              'forc_conv_thr': '{:.5f}'.format(forc_conv_thr),
+              'etot_conv_thr': '{:.8f}'.format(etot_conv_thr*Natom),
+              'forc_conv_thr': '{:.8f}'.format(forc_conv_thr),
         }
     controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode',
                    'verbosity' ,'wf_collect','tprnfor','tstress','nstep','etot_conv_thr','forc_conv_thr']
     system = {
-              'ecutrho' :   '{:.5f}'.format(rhocutoff),
-              'ecutwfc' :   '{:.5f}'.format(wfccutoff),
+              'ecutrho' :   '{:.0f}'.format(rhocutoff),
+              'ecutwfc' :   '{:.0f}'.format(wfccutoff),
               'ibrav' : str(ibrav),
               'nat' : str(Natom),
               'nbnd' : str(nbnd),

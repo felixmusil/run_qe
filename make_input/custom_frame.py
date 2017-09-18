@@ -164,8 +164,8 @@ def get_ibrav8_frame(frame, sg):
 
 def get_ibrav9_frame(frame, sg):
     '''
-    Seems that ibrav=-9 is not compatible with spacegroup input in qe 6.1
-    
+    hard to reproduce exactly QE primitive cell but it is similar.
+
     :param frame: 
     :param sg: 
     :return: 
@@ -175,14 +175,15 @@ def get_ibrav9_frame(frame, sg):
         print 'Not possible'
         return None
     (lattice, positions, numbers) = spg.standardize_cell(
-                            frame, to_primitive=True,no_idealize=False,
-                            symprec=symprec, angle_tolerance=-1.0)
+        frame, to_primitive=True, no_idealize=False,
+        symprec=symprec, angle_tolerance=-1.0)
     primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
 
+    # QE ibrav=2 and space group mix primitive cell and position in the standard cell
+    inequivalent_pos = frame.get_scaled_positions()[0].reshape((1, -1))
 
-    inequivalent_pos = primitive_atoms.get_scaled_positions()[0].reshape((1,-1))
-
-    cell_par = primitive_atoms.get_cell_lengths_and_angles()
+    # QE takes the a from the standard cell and not the primitive one
+    cell_par = frame.get_cell_lengths_and_angles()
 
     return primitive_atoms, cell_par, inequivalent_pos
 
@@ -202,6 +203,8 @@ def get_ibrav12_frame(frame, sg):
 
     return primitive_atoms, cell_par, inequivalent_pos
 
+
+
 ibrav2func = {3: get_ibrav3_frame,
                 7:get_ibrav0_frame,
                 10:get_ibrav0_frame,
@@ -211,6 +214,5 @@ ibrav2func = {3: get_ibrav3_frame,
                 2:get_ibrav2_frame,
                 5:get_ibrav5_frame,
                 8:get_ibrav8_frame,
-                -9:get_ibrav0_frame,
                 -12:get_ibrav12_frame,
 }

@@ -38,10 +38,13 @@ sym2z = {'H':1, 'He':2, 'Li':3, 'Be':4, 'B':5, 'C':6, 'N':7, 'O':8,
          'Ta':73, 'W':74, 'Re':75, 'Os':76, 'Ir':77, 'Pt':78, 'Au':79,
          'Hg':80, 'Tl':81, 'Pb':82, 'Bi':83 }
 
+
+# IN module/space_group.f90 the precise ibrav association is given
+# 'orthorhombic A': 91 is a special case which is not in the documentation
 bravaisLattice2ibrav = {'cubic P':1,'cubic F':2,'cubic I':3,'hexagonal P':4,'trigonal P':4,
                             'trigonal R':5,'tetragonal P':6,'tetragonal I':7,
-                            'orthorhombic P':8,'orthorhombic A':-9,'orthorhombic B':-9,
-                            'orthorhombic C':-9,'orthorhombic F':10,'orthorhombic I':11,
+                            'orthorhombic P':8,'orthorhombic A':91,'orthorhombic B':9,
+                            'orthorhombic C':9,'orthorhombic F':10,'orthorhombic I':11,
                             'monoclinic P':-12,'monoclinic A':13,'monoclinic B':13,
                             'monoclinic C':13, 'triclinic P':14}
 

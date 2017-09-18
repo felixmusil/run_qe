@@ -1,6 +1,6 @@
 import numpy as np
 from raw_info import missClassificationCorrection
-
+import spglib as spg
 
 def qp2ase(qpatoms):
     from ase import Atoms as aseAtoms
@@ -57,6 +57,29 @@ def get_symprec(crystal,spaceGroupIdx):
                 symprec = tol
                 return symprec
     return symprec
+
+
+def isInSP(crystal, spaceGroupIdx, tols=[1e-5, 1e-4, 1e-3, 1e-2]):
+    SPgood = False
+    detectedSpaceGroup = []
+
+    for tol in tols:
+        detectedSpaceGroup.append(crystal2SpaceGroupIdx(crystal, tol))
+    if spaceGroupIdx in detectedSpaceGroup:
+        SPgood = True
+    elif spaceGroupIdx in missClassificationCorrection.keys():
+        if missClassificationCorrection[spaceGroupIdx] in detectedSpaceGroup:
+            SPgood = True
+    return SPgood
+
+def crystal2SpaceGroupIdx(crystal,symtol):
+    '''Identify the space group index (from 1,230) of a given crystal (ase Atoms class).
+        Return an int from 1 to 230.'''
+    try:
+        return int(spg.get_spacegroup(crystal,symprec=symtol).split(' ')[1][1:-1])
+    except:
+
+        return -1
 
 
 def isCellSkewed(frame):

@@ -7,7 +7,7 @@ from utils import get_kpts
 from SSSP_acc_PBE_info import PP_names,rhocutoffs,wfccutoffs
 
 # List of the Space groups that do not need special care
-NOPROBLEM = [20, 21, 35, 36, 37, 38, 39, 40, 41, 63, 64, 65, 66, 67, 68,
+NOPROBLEM = [
              75, 76, 77, 78, 81, 83, 84, 85, 86, 89, 90, 91, 92, 93, 94, 95, 96, 99,
              100, 101, 102, 103, 104, 105, 106, 111, 112, 113, 114, 115, 116, 117, 118,
              123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137,

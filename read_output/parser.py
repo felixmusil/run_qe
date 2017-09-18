@@ -27,6 +27,7 @@ def get_filenames(path,fn_pattern='qe.out',dir_pattern=None):
                 filenames = os.listdir(os.path.join(root,dirname))
                 for filename in fnmatch.filter(filenames, fn_pattern):
                     matches.append(os.path.abspath(os.path.join(root,dirname, filename)))
+    return matches
 
 
 def get_patterns(fn, str_patterns):

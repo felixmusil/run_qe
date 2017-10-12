@@ -95,22 +95,23 @@ def unskewCell(frame):
         return ee
     else:
         return frame.copy()
-    
-    
-def get_kpts(frame,Nkpt=1000):
+
+
+def get_kpts(frame, Nkpt=1000, min_kpt=3):
     ir_cell = frame.get_reciprocal_cell()
-    ir_l = np.linalg.norm(ir_cell,axis=1)
-    
+    ir_l = np.linalg.norm(ir_cell, axis=1)
+
     n_kpt = float(Nkpt) / frame.get_number_of_atoms()
-    n_reg = np.power(n_kpt,1./3.).round()
+    n_reg = np.power(n_kpt, 1. / 3.)
+    print n_reg
     # find the midle val to norm with it
-    mid = list(set(range(3)).difference([ir_l.argmin(),ir_l.argmax()]))
+    mid = list(set(range(3)).difference([ir_l.argmin(), ir_l.argmax()]))
     ir_l = ir_l / ir_l[mid]
     # get number of k point per directions
-    nb = np.array(np.ceil(n_reg*ir_l),dtype=np.int64)
+    nb = np.array(np.round(n_reg * ir_l), dtype=np.int64)
     # makes sure there are at least 3 kpts per directions
-    nb[nb <3] = 3
-    
+    nb[nb < min_kpt] = min_kpt
+
     return nb
     
 def rotation_matrix(axis, theta):

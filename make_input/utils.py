@@ -103,7 +103,7 @@ def get_kpts(frame, Nkpt=1000, min_kpt=3):
 
     n_kpt = float(Nkpt) / frame.get_number_of_atoms()
     n_reg = np.power(n_kpt, 1. / 3.)
-    print n_reg
+    #print n_reg
     # find the midle val to norm with it
     mid = list(set(range(3)).difference([ir_l.argmin(), ir_l.argmax()]))
     ir_l = ir_l / ir_l[mid]

@@ -46,8 +46,8 @@ bravaisLattice2ibrav = {'cubic P':1,'cubic F':2,'cubic I':3,'hexagonal P':4,'tri
                             'trigonal R':5,'tetragonal P':6,'tetragonal I':7,
                             'orthorhombic P':8,'orthorhombic A':91,'orthorhombic B':9,
                             'orthorhombic C':9,'orthorhombic F':10,'orthorhombic I':11,
-                            'monoclinic P':-12,'monoclinic A':13,'monoclinic B':13,
-                            'monoclinic C':13, 'triclinic P':14}
+                            'monoclinic P':-12,'monoclinic A':-13,'monoclinic B':-13,
+                            'monoclinic C':-13, 'triclinic P':14}
 
 SG2BravaisLattice = \
     {1: 'triclinic P', 2: 'triclinic P', 3: 'monoclinic P', 4: 'monoclinic P',

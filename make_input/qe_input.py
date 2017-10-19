@@ -1,7 +1,7 @@
 import ase
 import numpy as np
 import spglib as spg
-from custom_frame import frame2qe_format
+from custom_frame import frame2qe_format,get_standard_frame
 from utils import get_kpts
 
 from SSSP_acc_PBE_info import PP_names,rhocutoffs,wfccutoffs
@@ -15,13 +15,25 @@ NOPROBLEM = [
              162, 163, 164, 165, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178,
              179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193,
              194, 195, 198, 200, 201, 205, 207, 208, 212, 213, 215, 218, 221, 222, 223,
-             224]
+             224]+[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121, 122,
+                   139, 140, 141, 142]+ [22, 42, 43, 69, 70]\
+            + [196, 202, 203, 209, 210, 216, 219, 225, 226, 227, 228]+\
+            [23, 24, 44, 45, 46, 71, 72, 73, 74]+[197, 199, 204, 206, 211, 214,
+            217, 220, 229, 230]+\
+            [16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50, 51,
+                   52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62]+\
+            [20, 21, 35, 36, 37, 38, 39, 40, 41, 63, 64, 65, 66, 67, 68]+\
+            [3, 4, 6, 7, 10, 11, 13, 14]
+
 
 # List of spacegroups that need ibrav0 input type
 ibrav0 = [5, 8, 9, 12, 15,23, 24,
           44, 45, 46, 71, 72, 73, 74,22, 42, 43,
           69, 70,79, 80, 82,87, 88, 97, 98, 107, 108, 109,110, 119, 120, 121, 122,
           139, 140, 141, 142]
+ibrav0 = [1,2] + [5, 8, 9, 12, 15]
+
+notimplemented_sg = [9]
 # List of spacegroups that need to be modified
 TOMODIFY = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 25, 26, 27,
             28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50, 51,
@@ -31,11 +43,12 @@ TOMODIFY = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 25, 
             167, 196, 197, 199, 202, 203, 204, 206, 209, 210, 211, 214, 216, 217, 219, 220, 225, 226, 227,
             228, 229, 230]
 
-frame2change = {7:[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121, 122,
+frame2change = {
+                7:[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121, 122,
                    139, 140, 141, 142],
                 10:[22, 42, 43, 69, 70],
                 11:[23, 24, 44, 45, 46, 71, 72, 73, 74],
-                13:[5, 8, 9, 12, 15],
+                -13:[5, 8, 9, 12, 15],
                 14:[1,2],
                 2:[196, 202, 203, 209, 210, 216, 219, 225, 226, 227, 228],
                 3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
@@ -48,8 +61,10 @@ frame2change = {7:[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121
 # list of space group that are in the missclassification list and really do not match
 # the sg idx. they are run as ibrav0
 tricky_sg = [33,29]
+tricky_sg = []
 
-dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169,145,78,19]
+# list of sg for which wyckoff position label should not be printed
+dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169,145,78,19,226,225]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,
@@ -90,8 +105,10 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  PP=PP)
 
     if spaceGroupIdx in ibrav0:
+        print 'NONONONO'
         qeInput = makeQEInput_ibrav0(**kwargs)
     elif spaceGroupIdx in tricky_sg:
+        print 'NONONONO'
         qeInput = makeQEInput_ibrav0(**kwargs)
     else:
         qeInput = makeQEInput_sg(**kwargs)
@@ -128,13 +145,20 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
         positions = crystal.get_scaled_positions()[0].reshape((1, -1))
         cellParam = crystal.get_cell_lengths_and_angles()
 
-    Natom = crystal.get_number_of_atoms()
+    cc = get_standard_frame(crystal, spaceGroupIdx, primitive=True)
+    Natom = cc.get_number_of_atoms()
+
     if ibrav == -12:
+        uniqueb = '.TRUE.'
+    elif ibrav == -13:
         uniqueb = '.TRUE.'
     else:
         uniqueb = '.FALSE.'
-    # if ibrav == -9:
-    #     ibrav = 9
+    if ibrav == 5:
+        rhombohedral = '.FALSE.'
+    else:
+        rhombohedral = '.TRUE.'
+
     nbnd = get_number_of_bands(Natom=Natom,Nvalence=nvalence)
 
     d2r = np.pi / 180.
@@ -143,9 +167,12 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     if print_forces:
         tprnfor = '.true.'
     tstress = '.false.'
-    if print_stress:
+    if print_stress or calculation_type == '"vc-relax"':
         tstress = '.true.'
 
+    cosAB = np.cos(cellParam[3] * d2r)
+    cosAC = np.cos(cellParam[4] * d2r)
+    cosBC = np.cos(cellParam[5] * d2r)
 
     # define name list of QE
     control = {'calculation' : calculation_type,
@@ -168,22 +195,27 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
               'ecutwfc' :   '{:.0f}'.format(wfccutoff),
               'ibrav' : str(ibrav),
               'nat' : str(1),
-              'nbnd' : str(nbnd),
+              #'nbnd' : str(nbnd),
               'ntyp' : str(1),
               'occupations' : '"smearing"',
               'smearing' : '"cold"',
               'degauss' :   '{:.6f}'.format(smearing),
               'space_group' : str(spaceGroupIdx),
               'uniqueb':uniqueb,
+              'rhombohedral':rhombohedral,
               'A' : str(cellParam[0]),
               'B' : str(cellParam[1]),
               'C' : str(cellParam[2]),
-              'cosAB' : '{:.5f}'.format(np.cos(cellParam[3]*d2r)),
-              'cosAC' : '{:.5f}'.format(np.cos(cellParam[4]*d2r)),
-              'cosBC' : '{:.5f}'.format(np.cos(cellParam[5]*d2r)),
+              'cosAB' : '{:.5f}'.format(cosAB),
+              'cosAC' : '{:.5f}'.format(cosAC),
+              'cosBC' : '{:.5f}'.format(cosBC),
         }
-    syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
-               'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
+
+    syskeys = ['ecutrho', 'ecutwfc', 'ibrav', 'nat', 'ntyp',
+               'occupations', 'smearing', 'degauss', 'space_group', 'uniqueb','rhombohedral',
+               'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC']
+    # syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
+    #            'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
     electrons = {'conv_thr':'{:.8f}'.format(scf_conv_thr)}
     cellkeys = ['cell_factor', 'press', 'press_conv_thr']
     # pressure in [KBar]
@@ -215,7 +247,11 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     qeInput += makeNamelist('&CONTROL',control,controlKeys)
     qeInput += makeNamelist( '&SYSTEM' ,system,syskeys)
     qeInput += makeNamelist( '&ELECTRONS',electrons)
+    if calculation_type == '"vc-relax"':
+        ions = {'ion_dynamics': '"bfgs"',}
+        qeInput += makeNamelist('&IONS', ions)
     qeInput += makeNamelist('&CELL', cell)
+
     qeInput += makeCard(atomic_sp,cardKeys = atspkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(atomic_pos,cardKeys = atposkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(kpoints,cardKeys = kptkeys,optionKey = optionkey,T = False)
@@ -257,7 +293,7 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
     if print_forces:
         tprnfor = '.true.'
     tstress = '.false.'
-    if print_stress:
+    if print_stress or calculation_type == '"vc-relax"':
         tstress = '.true.'
 
     # define name list of QE
@@ -316,6 +352,12 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
     qeInput += makeNamelist('&CONTROL',control,controlKeys)
     qeInput += makeNamelist( '&SYSTEM' ,system,syskeys)
     qeInput += makeNamelist( '&ELECTRONS',electrons)
+    if calculation_type == '"vc-relax"':
+        ions = {
+            'ion_dynamics': '"bfgs"',
+
+        }
+        qeInput += makeNamelist('&IONS', ions)
     qeInput += makeNamelist('&CELL', cell)
     qeInput += makeCard(atomic_sp,cardKeys = atspkeys,optionKey = optionkey,T = True) 
     qeInput += makeCard(atomic_pos,cardKeys = atposkeys,optionKey = optionkey,T = True) 

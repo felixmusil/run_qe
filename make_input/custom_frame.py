@@ -13,13 +13,13 @@ def frame2qe_format(frame,sg):
     :param sg:
     :return:
     '''
-    from qe_input import NOPROBLEM, SG2ibrav,tricky_sg
+    from qe_input import NOPROBLEM, SG2ibrav,tricky_sg,ibrav0
 
-    if sg in NOPROBLEM:
-        cell_par = frame.get_cell_lengths_and_angles()
-        inequivalent_pos = frame.get_scaled_positions()[0].reshape((1,-1))
-        custom_frame = frame.copy()
 
+    if sg in ibrav0:
+        custom_frame, cell_par, inequivalent_pos = get_ibrav0_frame(frame, sg)
+    elif sg in NOPROBLEM:
+        custom_frame, cell_par, inequivalent_pos = get_frame_no_mod(frame, sg)
     elif sg in tricky_sg:
         ibrav = 0
 
@@ -119,21 +119,8 @@ def get_ibrav5_frame(frame, sg):
                             symprec=symprec, angle_tolerance=-1.0)
     primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
 
-    cell = primitive_atoms.get_cell()
-    pos = primitive_atoms.get_positions()
 
-    axis = [0, 0, 1]
-    theta = - 60. * np.pi / 180.
-    rot = rotation_matrix(axis, theta)
-
-    cellp = np.dot(cell, rot.T)
-    cellp[np.abs(cellp) < 1e-10] = 0.
-    posp = np.dot(pos, rot.T)
-
-    primitive_atoms.set_cell(cellp)
-    primitive_atoms.set_positions(posp)
-
-    inequivalent_pos = primitive_atoms.get_scaled_positions()[0].reshape((1, -1))
+    inequivalent_pos = frame.get_scaled_positions()[0].reshape((1, -1))
 
     cell_par = primitive_atoms.get_cell_lengths_and_angles()
 
@@ -162,7 +149,7 @@ def get_ibrav8_frame(frame, sg):
 
     return primitive_atoms, cell_par, inequivalent_pos
 
-def get_ibrav9_frame(frame, sg):
+def get_frame_no_mod(frame, sg):
     '''
     hard to reproduce exactly QE primitive cell but it is similar.
 
@@ -170,16 +157,7 @@ def get_ibrav9_frame(frame, sg):
     :param sg: 
     :return: 
     '''
-    symprec = get_symprec(frame, sg)
-    if symprec is None:
-        print 'Not possible'
-        return None
-    (lattice, positions, numbers) = spg.standardize_cell(
-        frame, to_primitive=True, no_idealize=False,
-        symprec=symprec, angle_tolerance=-1.0)
-    primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
 
-    # QE ibrav=2 and space group mix primitive cell and position in the standard cell
     inequivalent_pos = frame.get_scaled_positions()[0].reshape((1, -1))
 
     # QE takes the a from the standard cell and not the primitive one
@@ -217,16 +195,16 @@ def get_standard_frame(frame,sg,primitive=True):
     primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
     return primitive_atoms
 
-ibrav2func = {3: get_ibrav3_frame,
-                7:get_ibrav0_frame,
-                10:get_ibrav0_frame,
-                11:get_ibrav0_frame,
-                13:get_ibrav0_frame,
-                14:get_ibrav0_frame,
-                2:get_ibrav2_frame,
+ibrav2func = {3: get_frame_no_mod,
+                7:get_frame_no_mod,
+                10:get_frame_no_mod,
+                11:get_frame_no_mod,
+                -13:get_frame_no_mod,
+                14:get_frame_no_mod,
+                2:get_frame_no_mod,
                 5:get_ibrav5_frame,
-                8:get_ibrav8_frame,
-                9:get_ibrav9_frame,
-                91:get_ibrav9_frame,
-                -12:get_ibrav12_frame,
+                8:get_frame_no_mod,
+                9:get_frame_no_mod,
+                91:get_frame_no_mod,
+                -12:get_frame_no_mod,
 }

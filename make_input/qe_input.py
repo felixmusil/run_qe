@@ -105,10 +105,10 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  PP=PP)
 
     if spaceGroupIdx in ibrav0:
-        print 'NONONONO'
+
         qeInput = makeQEInput_ibrav0(**kwargs)
     elif spaceGroupIdx in tricky_sg:
-        print 'NONONONO'
+
         qeInput = makeQEInput_ibrav0(**kwargs)
     else:
         qeInput = makeQEInput_sg(**kwargs)

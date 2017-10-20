@@ -44,7 +44,7 @@ deneb = {'sbatch':'#SBATCH --constrain=E5v2 ',
 
 
 def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
-                       workdir='/scratch/musil/qmat/run_qe/', node=1, tasks=1,
+                       workdir='/scratch/musil/qmat/run_qe/', node=1, tasks_per_node=1,
                        cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False):
     if hpc == 'deneb':
         config = deneb
@@ -56,12 +56,13 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     sbatch = '#!/bin/bash {ndl}\
 #SBATCH --workdir {workdir} {ndl}\
 #SBATCH --nodes {node} {ndl}\
-#SBATCH --ntasks {tasks} {ndl}\
+#SBATCH --tasks-per-node {tasks} {ndl}\
+#SBATCH --contiguous {ndl}\
 #SBATCH --cpus-per-task {cpus} {ndl}\
 #SBATCH --mem {mem} {ndl}\
 #SBATCH --time {time}  {ndl}'.format(
         workdir=workdir, node=str(node),
-        tasks=str(tasks), cpus=str(cpus_per_tasks),
+        tasks=str(tasks_per_node), cpus=str(cpus_per_tasks),
         mem=str(mem), time=time, ndl=ndl)
 
     sbatch += config['sbatch'] + ndl
@@ -80,7 +81,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
 
     return sbatch + module + cmd
 
-def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks=1,
+def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_node=1,
                 cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False):
     path = make_dir(dirName)
     inputName = os.path.abspath(path+'/qe.in')
@@ -90,7 +91,7 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks=1,
     errName = os.path.abspath(path+'/job.err')
 
     submit_script = make_submit_script(hpc=hpc, input_fn=inputName, output_fn=outputName,
-                                       workdir=path, node=node, tasks=tasks,
+                                       workdir=path, node=node, tasks_per_node=tasks_per_node,
                                        cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     with open(inputName,'w') as f:

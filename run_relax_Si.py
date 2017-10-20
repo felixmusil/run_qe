@@ -84,7 +84,8 @@ for (sg,it),dirName in dirNames.iteritems():
                     ppPath=ppPath)
 
 
-    exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node, tasks=tasks,
+    exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
+                    tasks_per_node=tasks,
                     cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     pbar.update()

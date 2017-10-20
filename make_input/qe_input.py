@@ -27,44 +27,19 @@ NOPROBLEM = [
 
 
 # List of spacegroups that need ibrav0 input type
-ibrav0 = [5, 8, 9, 12, 15,23, 24,
-          44, 45, 46, 71, 72, 73, 74,22, 42, 43,
-          69, 70,79, 80, 82,87, 88, 97, 98, 107, 108, 109,110, 119, 120, 121, 122,
-          139, 140, 141, 142]
 ibrav0 = [1,2] + [5, 8, 9, 12, 15]
 
 notimplemented_sg = [9]
-# List of spacegroups that need to be modified
-TOMODIFY = [1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,16, 17, 18, 19, 25, 26, 27,
-            28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50, 51,
-            52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 20, 21, 22, 23, 24, 35, 36, 37, 38, 39, 40, 41,
-            42, 43, 44, 45, 46, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 79, 80, 82, 87, 88, 97,
-            98, 107, 108, 109, 110, 119, 120, 121, 122, 139, 140, 141, 142, 146, 148, 155, 160, 161, 166,
-            167, 196, 197, 199, 202, 203, 204, 206, 209, 210, 211, 214, 216, 217, 219, 220, 225, 226, 227,
-            228, 229, 230]
+
 
 frame2change = {
-                7:[79, 80, 82, 87, 88, 97, 98, 107, 108, 109, 110, 119, 120, 121, 122,
-                   139, 140, 141, 142],
-                10:[22, 42, 43, 69, 70],
-                11:[23, 24, 44, 45, 46, 71, 72, 73, 74],
-                -13:[5, 8, 9, 12, 15],
-                14:[1,2],
-                2:[196, 202, 203, 209, 210, 216, 219, 225, 226, 227, 228],
-                3: [197, 199, 204, 206, 211, 214, 217, 220, 229, 230],
                 5:[146, 148, 155, 160, 161, 166, 167],
-                8:[16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 47, 48, 49, 50, 51,
-                   52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62],
-                9:[20, 21, 35, 36, 37, 38, 39, 40, 41, 63, 64, 65, 66, 67, 68],
-                -12:[3, 4, 6, 7, 10, 11, 13, 14],
 }
-# list of space group that are in the missclassification list and really do not match
-# the sg idx. they are run as ibrav0
-tricky_sg = [33,29]
-tricky_sg = []
+
 
 # list of sg for which wyckoff position label should not be printed
-dont_print_wyck = [144,7,227,4,228,29,33,170,76,19,169,145,78,19,226,225]
+dont_print_wyck = [4, 7, 19, 19, 29, 33, 76, 78, 144,
+                   145, 169, 170, 225, 226, 227, 228]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,
@@ -72,7 +47,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
-                restart=False,
+                restart=False,collect_wf=False,
                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],
                 ppPath='"./pseudo/SSSP_acc_PBE/"'):
 
@@ -102,13 +77,9 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                   pressure=pressure, press_conv_thr=press_conv_thr, cell_factor=cell_factor,
                  calculation_type=calculation_type,smearing=smearing,
                  kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
-                 PP=PP)
+                 PP=PP,collect_wf=collect_wf)
 
     if spaceGroupIdx in ibrav0:
-
-        qeInput = makeQEInput_ibrav0(**kwargs)
-    elif spaceGroupIdx in tricky_sg:
-
         qeInput = makeQEInput_ibrav0(**kwargs)
     else:
         qeInput = makeQEInput_sg(**kwargs)
@@ -122,7 +93,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                    smearing=1e-2,cell_par=None, inequivalent_pos=None ,
                 etot_conv_thr=1e-4, forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
-                 pressure=0,press_conv_thr=0.5,cell_factor=2,
+                 pressure=0,press_conv_thr=0.5,cell_factor=2,collect_wf=False,
                  kpt = [2,2,2],kpt_offset = [0,0,0],ppPath='"./pseudo/"',
                  PP=['Si.pbe-n-rrkjus_psl.1.0.0.UPF']):
 
@@ -170,25 +141,33 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     if print_stress or calculation_type == '"vc-relax"':
         tstress = '.true.'
 
+    wf_collect = '.false.'
+    outdir = '"./out/"'
+    if collect_wf:
+        wf_collect = '.true.'
+    wfcdir = '"./wf_out/"'
+
     cosAB = np.cos(cellParam[3] * d2r)
     cosAC = np.cos(cellParam[4] * d2r)
     cosBC = np.cos(cellParam[5] * d2r)
 
     # define name list of QE
     control = {'calculation' : calculation_type,
-              'outdir' : '"./out/"',
+              'outdir' : outdir,
+              'wfcdir': wfcdir,
               'prefix' : '"qe"',
+               'disk_io':'"low"',
               'pseudo_dir' : ppPath,
               'restart_mode' : restart_mode,
               'verbosity' : '"high"',
-              'wf_collect' : '.false.',
+              'wf_collect' : wf_collect,
                'tprnfor': tprnfor,
                'tstress': tstress,
               'nstep': '{:.0f}'.format(nstep),
               'etot_conv_thr' : '{:.8f}'.format(etot_conv_thr*Natom),
               'forc_conv_thr' : '{:.8f}'.format(forc_conv_thr),
         }
-    controlKeys = ['calculation', 'outdir', 'prefix', 'pseudo_dir', 'restart_mode',
+    controlKeys = ['calculation', 'outdir','wfcdir', 'prefix', 'pseudo_dir','disk_io', 'restart_mode',
                    'verbosity', 'wf_collect','tprnfor','tstress','nstep', 'etot_conv_thr', 'forc_conv_thr']
     system = {
               'ecutrho' :   '{:.0f}'.format(rhocutoff),
@@ -261,7 +240,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
 
 def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
                  zatom = 14,rhocutoff = 20 * 4,wfccutoff = 20,smearing=1e-2,
-                pressure=0,press_conv_thr=0.5,cell_factor=2,
+                pressure=0,press_conv_thr=0.5,cell_factor=2,collect_wf=False,
                 restart_mode = '"from_scratch"',cell_par=None, inequivalent_pos=None ,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                  scf_conv_thr=1e-6,print_forces=True,print_stress=False,
@@ -296,22 +275,29 @@ def makeQEInput_ibrav0(crystal,WyckTable,SGTable,ElemTable,spaceGroupIdx=10,
     if print_stress or calculation_type == '"vc-relax"':
         tstress = '.true.'
 
+    wf_collect = '.false.'
+    outdir  = '"./out/"'
+    if collect_wf:
+        wf_collect = '.true.'
+    wfcdir = '"./wf_out/"'
     # define name list of QE
     control = {'calculation' : calculation_type,
-              'outdir' : '"./out/"',
+              'outdir' : outdir,
+              'wfcdir': wfcdir,
               'prefix' : '"qe"',
               'pseudo_dir' : ppPath,
               'restart_mode' : restart_mode,
               'verbosity' : '"high"',
-              'wf_collect' : '.false.',
+              'wf_collect' : wf_collect,
                'tprnfor': tprnfor,
                'tstress': tstress,
               'nstep':'{:.0f}'.format(nstep),
               'etot_conv_thr': '{:.8f}'.format(etot_conv_thr*Natom),
               'forc_conv_thr': '{:.8f}'.format(forc_conv_thr),
         }
-    controlKeys = ['calculation','outdir','prefix','pseudo_dir', 'restart_mode',
-                   'verbosity' ,'wf_collect','tprnfor','tstress','nstep','etot_conv_thr','forc_conv_thr']
+    controlKeys = ['calculation', 'outdir', 'wfcdir', 'prefix', 'pseudo_dir', 'disk_io', 'restart_mode',
+                   'verbosity', 'wf_collect', 'tprnfor', 'tstress', 'nstep', 'etot_conv_thr', 'forc_conv_thr']
+
     system = {
               'ecutrho' :   '{:.0f}'.format(rhocutoff),
               'ecutwfc' :   '{:.0f}'.format(wfccutoff),

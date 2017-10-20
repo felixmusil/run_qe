@@ -7,11 +7,12 @@ from make_input.qe_run import run_qe_hpc
 from make_input.raw_info import SG2BravaisLattice
 from tqdm import tqdm
 from make_input.raw_info import bravaisLattice2ibrav,SG2BravaisLattice
+from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs
 
-ssg = range(1,230+1)
+sgs = range(1,230+1)
 sg2ibrav = {}
 ibrav2sg = {ibrav:[] for ibrav in bravaisLattice2ibrav.values()}
-for sg in ssg:
+for sg in sgs:
     bl = SG2BravaisLattice[sg]
     ibrav = bravaisLattice2ibrav[bl]
     ibrav2sg[ibrav].append(sg)
@@ -23,21 +24,21 @@ calculation_type = '"vc-relax"'
 zatom = 14
 
 kpt = [2,2,2]
-Nkpt = None
+Nkpt = 1000
 # rhocutoff ,wfccutoff = None,None
-rhocutoff ,wfccutoff = 20*4,20
-smearing = 1e-2
+rhocutoff ,wfccutoff = rhocutoffs[zatom],wfccutoffs[zatom]
+smearing = 1e-6
 etot_conv_thr = 1e-4
-forc_conv_thr = 1e-3
-nstep = 2
-scf_conv_thr = 1e-1
+forc_conv_thr = 1e-4
+nstep = 100
+scf_conv_thr = 1e-6
 
 hpc = 'deneb'
 node = 1
 tasks = 16
 cpus_per_tasks = 1
 mem = 63000
-time = '00:10:00'
+time = '24:00:00'
 debug = False
 
 dataPath = '/scratch/musil/qmat/data/'
@@ -63,8 +64,8 @@ with open(fileNames['wyck'],'rb') as f:
 SGTable = pd.read_pickle(fileNames['general info'])
 ElemTable = pd.read_pickle(fileNames['elements info'])
 
-dirNames = {(sg,it):dataPath + 'check_input_errors_relax/sg_{}-f_{}'.format(sg,it)
-            for sg in  ssg for it in range(len(crystals[sg]))}
+dirNames = {(sg,it):dataPath + 'run_relax_Si/sg_{}-f_{}'.format(sg,it)
+            for sg in  sgs for it in range(len(crystals[sg]))}
 
 # crystal = crystals[sg][it]
 # dirName = dataPath + 'test_run/sg_{}-f_{}'.format(sg,it)
@@ -78,9 +79,9 @@ for (sg,it),dirName in dirNames.iteritems():
     input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                     zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
                     calculation_type=calculation_type,smearing=smearing,
-                    pressure=0,press_conv_thr=0.5,cell_factor=2,
-                    etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=nstep,
-                    scf_conv_thr=scf_conv_thr,print_forces=False,
+                    pressure=0,press_conv_thr=0.5,cell_factor=5,
+                    etot_conv_thr=etot_conv_thr,forc_conv_thr=forc_conv_thr,nstep=nstep,
+                    scf_conv_thr=scf_conv_thr,print_forces=True,
                     kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
                     ppPath=ppPath)
 

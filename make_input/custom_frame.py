@@ -13,18 +13,13 @@ def frame2qe_format(frame,sg):
     :param sg:
     :return:
     '''
-    from qe_input import NOPROBLEM, SG2ibrav,tricky_sg,ibrav0
+    from qe_input import NOPROBLEM, SG2ibrav,ibrav0
 
 
     if sg in ibrav0:
         custom_frame, cell_par, inequivalent_pos = get_ibrav0_frame(frame, sg)
     elif sg in NOPROBLEM:
         custom_frame, cell_par, inequivalent_pos = get_frame_no_mod(frame, sg)
-    elif sg in tricky_sg:
-        ibrav = 0
-
-        change_func = ibrav2func[ibrav]
-        custom_frame,  cell_par, inequivalent_pos  = change_func(frame, sg)
 
     else:
         ibrav = SG2ibrav(sg)

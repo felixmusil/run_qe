@@ -1,10 +1,8 @@
 import cPickle as pck
 import pandas as pd
 
-from make_input.qe_input import makeQEInput,frame2change
+from make_input.qe_input import makeQEInput
 from make_input.qe_run import run_qe_hpc
-from make_input.qe_run import run_qe_hpc
-from make_input.raw_info import SG2BravaisLattice
 from tqdm import tqdm
 from make_input.raw_info import bravaisLattice2ibrav,SG2BravaisLattice
 from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs

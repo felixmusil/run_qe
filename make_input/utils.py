@@ -167,7 +167,7 @@ def change_input(fn, replace_dict=None, add_dict=None):
 
     destination = open(fn, "w")
     source = open(new_fn, "r")
-    print fn
+
     for line in source:
 
         mod = False

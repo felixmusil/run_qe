@@ -44,7 +44,8 @@ _PW_STRESS = 'total   stress'
 
 def read_qe(filename):
     """
-    Minimal wrapper to parse full qe outputfiles
+    Minimal wrapper to parse full qe outputfiles. The customization is for structure to be 
+    all converted to angstrom. (look up "### MODIFIED" to find the modifications)
     :param filename: 
     :return: list of Atoms from the file
     """

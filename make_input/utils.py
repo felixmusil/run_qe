@@ -1,6 +1,7 @@
 import numpy as np
 from raw_info import missClassificationCorrection
 import spglib as spg
+import shutil,os
 
 def qp2ase(qpatoms):
     from ase import Atoms as aseAtoms
@@ -150,3 +151,39 @@ def get_relative_angle(v1,v2,radian=True):
         return angle
     else:
         return angle*180 /np.pi
+
+def check_suffix(file_path):
+    suffix = 0
+    while os.path.isfile(file_path+'-{}'.format(suffix)):
+        suffix += 1
+    new_file_path = file_path +'-{}'.format(suffix)
+    return new_file_path
+
+
+def change_input(fn, replace_dict=None, add_dict=None):
+    new_fn = check_suffix(fn + ".bak")
+
+    shutil.move(fn, new_fn)
+
+    destination = open(fn, "w")
+    source = open(new_fn, "r")
+    print fn
+    for line in source:
+
+        mod = False
+        if replace_dict is not None:
+            for name, val in replace_dict.iteritems():
+                if name in line:
+                    destination.write('  ' + name + ' = ' + val + " \n")
+                    mod = True
+        if add_dict is not None:
+            for name, val in add_dict.iteritems():
+                if name in line:
+                    destination.write(line)
+                    destination.write('  ' + val[0] + ' = ' + val[1] + " \n")
+                    mod = True
+        if not mod:
+            destination.write(line)
+
+    source.close()
+    destination.close()

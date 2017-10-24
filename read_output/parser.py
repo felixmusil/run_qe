@@ -83,15 +83,24 @@ def extract_floats(s):
             pass
     return l
 
+
 def finishedProperly(fn):
     '''
     Check is the qe.out finished properly
     :param fn: 
     :return: 
     '''
-    str_patterns = ['JOB DONE.']
-    s = get_patterns(fn,str_patterns)['JOB DONE.']
-    if s:
+    str_patterns = ['JOB DONE.', 'convergence NOT achieved']
+
+    patterns = get_patterns(fn, str_patterns)
+    s = patterns['JOB DONE.']
+    ss = patterns['convergence NOT achieved']
+
+    conv = True
+    if ss != []:
+        conv = False
+
+    if s and conv:
         return True
     else:
         return False

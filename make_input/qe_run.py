@@ -45,7 +45,7 @@ deneb = {'sbatch':'#SBATCH --constrain=E5v2 ',
 
 def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
                        workdir='/scratch/musil/qmat/run_qe/', node=1, tasks_per_node=1,
-                       cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False):
+                       cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
     if hpc == 'deneb':
         config = deneb
     else:
@@ -54,6 +54,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
 
     ndl = '\n'
     sbatch = '#!/bin/bash {ndl}\
+#SBATCH --job-name={name} {ndl} \
 #SBATCH --workdir {workdir} {ndl}\
 #SBATCH --nodes {node} {ndl}\
 #SBATCH --tasks-per-node {tasks} {ndl}\
@@ -63,7 +64,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
 #SBATCH --time {time}  {ndl}'.format(
         workdir=workdir, node=str(node),
         tasks=str(tasks_per_node), cpus=str(cpus_per_tasks),
-        mem=str(mem), time=time, ndl=ndl)
+        mem=str(mem), time=time,name=name, ndl=ndl)
 
     sbatch += config['sbatch'] + ndl
     if debug:

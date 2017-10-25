@@ -83,7 +83,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     return sbatch + module + cmd
 
 def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_node=1,
-                cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False):
+                cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
     path = make_dir(dirName)
     inputName = os.path.abspath(path+'/qe.in')
     submit_scriptName = os.path.abspath(path+'/qe.sh')
@@ -91,7 +91,7 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_no
     jobName = os.path.abspath(path+'/job.id')
     errName = os.path.abspath(path+'/job.err')
 
-    submit_script = make_submit_script(hpc=hpc, input_fn=inputName, output_fn=outputName,
+    submit_script = make_submit_script(hpc=hpc, input_fn=inputName, output_fn=outputName,name=name,
                                        workdir=path, node=node, tasks_per_node=tasks_per_node,
                                        cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 

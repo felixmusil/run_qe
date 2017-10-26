@@ -47,7 +47,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
-                restart=False,collect_wf=False,force_ibrav0=True,
+                restart=False,collect_wf=False,force_ibrav0=False,
                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],
                 ppPath='"./pseudo/SSSP_acc_PBE/"'):
 

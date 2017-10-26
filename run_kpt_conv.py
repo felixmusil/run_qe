@@ -36,7 +36,7 @@ node = 1
 tasks = 16
 cpus_per_tasks = 1
 mem = 63000
-time = '24:00:00'
+time = '10:00:00'
 debug = False
 
 dataPath = '/scratch/musil/qmat/data/'

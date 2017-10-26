@@ -75,19 +75,20 @@ print 'sending the calcs'
 pbar = tqdm(total=len(dirNames),ascii=True)
 for (sg,it,Nkpt),dirName in dirNames.iteritems():
     crystal = crystals[(sg,it)]
-    input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
-                    zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
-                    calculation_type=calculation_type,smearing=smearing,
-                    pressure=0,press_conv_thr=0.5,cell_factor=5,
-                    etot_conv_thr=etot_conv_thr,forc_conv_thr=forc_conv_thr,nstep=nstep,
-                    scf_conv_thr=scf_conv_thr,print_forces=True,
-                    kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
-                    ppPath=ppPath)
+    print sg,it,crystal
+    # input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
+    #                 zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
+    #                 calculation_type=calculation_type,smearing=smearing,
+    #                 pressure=0,press_conv_thr=0.5,cell_factor=5,
+    #                 etot_conv_thr=etot_conv_thr,forc_conv_thr=forc_conv_thr,nstep=nstep,
+    #                 scf_conv_thr=scf_conv_thr,print_forces=True,
+    #                 kpt = kpt,Nkpt=Nkpt ,kpt_offset = [0,0,0],
+    #                 ppPath=ppPath)
 
 
-    exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
-                    tasks_per_node=tasks,name='{}_{}_{}'.format(sg,it,Nkpt),
-                    cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
+    # exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
+    #                 tasks_per_node=tasks,name='{}_{}_{}'.format(sg,it,Nkpt),
+    #                 cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     pbar.update()
 

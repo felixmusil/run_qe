@@ -1,0 +1,53 @@
+&CONTROL 
+  calculation = "vc-relax" 
+  outdir = "./out/" 
+  wfcdir = "./wf_out/" 
+  prefix = "qe" 
+  pseudo_dir = "/local/git/run_qe/pseudo/SSSP_acc_PBE/" 
+  disk_io = "low" 
+  restart_mode = "from_scratch" 
+  verbosity = "high" 
+  wf_collect = .false. 
+  tprnfor = .true. 
+  tstress = .true. 
+  nstep = 150 
+  etot_conv_thr = 0.00020000 
+  forc_conv_thr = 0.00010000 
+/ 
+&SYSTEM 
+  ecutrho = 560 
+  ecutwfc = 70 
+  ibrav = 2 
+  nat = 1 
+  ntyp = 1 
+  occupations = "smearing" 
+  smearing = "cold" 
+  degauss = 0.000001 
+  space_group = 227 
+  uniqueb = .FALSE. 
+  rhombohedral = .TRUE. 
+  celldm(1) = 10.334397352782952
+  !A = 3.867 
+  !B = 3.867 
+  !C = 3.867 
+  !cosAB = 0.00000 
+  !cosAC = 0.00000 
+  !cosBC = 0.00000 
+/ 
+&ELECTRONS 
+  conv_thr = 0.00000100 
+/ 
+&IONS 
+  ion_dynamics = "bfgs" 
+/ 
+&CELL 
+  press = 0.00000 
+  press_conv_thr = 0.50000 
+  cell_factor = 3.00000 
+/ 
+ATOMIC_SPECIES   
+  Si  28.0855  Si.pbe-n-rrkjus_psl.1.0.0.UPF 
+ATOMIC_POSITIONS  crystal_sg 
+  Si    0.   0.   0.5 
+K_POINTS  automatic 
+  10  10  10  0  0  0 

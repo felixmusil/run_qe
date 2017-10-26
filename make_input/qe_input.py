@@ -47,7 +47,7 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 pressure=0,press_conv_thr=0.5,cell_factor=2,
                 etot_conv_thr=1e-4,forc_conv_thr=1e-3,nstep=150,
                 scf_conv_thr=1e-6,print_forces=True,print_stress=False,
-                restart=False,collect_wf=False,
+                restart=False,collect_wf=False,force_ibrav0=True,
                 kpt = [2,2,2],Nkpt=None,kpt_offset = [0,0,0],
                 ppPath='"./pseudo/SSSP_acc_PBE/"'):
 
@@ -55,7 +55,10 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     if restart:
         restart_mode = '"restart"'
 
-    new_crystal,cell_par, inequivalent_pos = frame2qe_format(crystal,spaceGroupIdx)
+    if force_ibrav0:
+        new_crystal,cell_par, inequivalent_pos = crystal.copy(),crystal.get_cell(),crystal.get_positions()
+    else:
+        new_crystal,cell_par, inequivalent_pos = frame2qe_format(crystal,spaceGroupIdx)
 
     PP = [PP_names[zatom]]
 
@@ -79,10 +82,13 @@ def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                  kpt = kpt,kpt_offset = kpt_offset,ppPath=ppPath,
                  PP=PP,collect_wf=collect_wf)
 
-    if spaceGroupIdx in ibrav0:
+    if force_ibrav0:
         qeInput = makeQEInput_ibrav0(**kwargs)
     else:
-        qeInput = makeQEInput_sg(**kwargs)
+        if spaceGroupIdx in ibrav0:
+            qeInput = makeQEInput_ibrav0(**kwargs)
+        else:
+            qeInput = makeQEInput_sg(**kwargs)
 
     return qeInput
 

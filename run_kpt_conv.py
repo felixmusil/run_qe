@@ -74,7 +74,7 @@ dirNames = {(sg,it,Nkpt):dataPath + 'kpt_convergence/sg_{}-f_{}-kpt_{}'.format(s
 print 'sending the calcs'
 pbar = tqdm(total=len(dirNames),ascii=True)
 for (sg,it,Nkpt),dirName in dirNames.iteritems():
-    crystal = crystals[sg][it]
+    crystal = crystals[(sg,it)]
     input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                     zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
                     calculation_type=calculation_type,smearing=smearing,

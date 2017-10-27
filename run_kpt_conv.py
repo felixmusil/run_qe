@@ -78,7 +78,7 @@ for (sg,it,Nkpt),dirName in dirNames.iteritems():
 
     input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                     zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
-                    calculation_type=calculation_type,smearing=smearing,wf_collect =False,
+                    calculation_type=calculation_type,smearing=smearing,collect_wf =False,
                     pressure=0,press_conv_thr=0.5,cell_factor=5,force_ibrav0=True,
                     etot_conv_thr=etot_conv_thr,forc_conv_thr=forc_conv_thr,nstep=nstep,
                     scf_conv_thr=scf_conv_thr,print_forces=True,

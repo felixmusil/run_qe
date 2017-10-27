@@ -25,7 +25,7 @@ kpt = [2,2,2]
 Nkpts = [1000,2000,3000,5000]
 # rhocutoff ,wfccutoff = None,None
 rhocutoff ,wfccutoff = rhocutoffs[zatom],wfccutoffs[zatom]
-smearing = 1e-4
+smearing = 1e-2
 etot_conv_thr = 1e-4
 forc_conv_thr = 1e-4
 nstep = 100
@@ -63,7 +63,7 @@ with open(fileNames['wyck'],'rb') as f:
 SGTable = pd.read_pickle(fileNames['general info'])
 ElemTable = pd.read_pickle(fileNames['elements info'])
 
-dirNames = {(sg,it,Nkpt):dataPath + 'kpt_convergence/sg_{}-f_{}-kpt_{}'.format(sg,it,Nkpt)
+dirNames = {(sg,it,Nkpt):dataPath + 'kpt_convergence_2/sg_{}-f_{}-kpt_{}'.format(sg,it,Nkpt)
             for (sg,it) in crystals.keys() for Nkpt in Nkpts  }
 
 # crystal = crystals[sg][it]
@@ -78,7 +78,7 @@ for (sg,it,Nkpt),dirName in dirNames.iteritems():
 
     input_str = makeQEInput(crystal,sg,WyckTable,SGTable,ElemTable,
                     zatom = zatom,rhocutoff = rhocutoff,wfccutoff = wfccutoff,
-                    calculation_type=calculation_type,smearing=smearing,
+                    calculation_type=calculation_type,smearing=smearing,wf_collect =False,
                     pressure=0,press_conv_thr=0.5,cell_factor=5,force_ibrav0=True,
                     etot_conv_thr=etot_conv_thr,forc_conv_thr=forc_conv_thr,nstep=nstep,
                     scf_conv_thr=scf_conv_thr,print_forces=True,

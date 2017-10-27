@@ -98,7 +98,7 @@ def unskewCell(frame):
         return frame.copy()
 
 
-def get_kpts(frame, Nkpt=1000):
+def get_kpts_old(frame, Nkpt=1000):
     ir_cell = frame.get_reciprocal_cell()
     ir_l = np.linalg.norm(ir_cell, axis=1)
 
@@ -114,6 +114,24 @@ def get_kpts(frame, Nkpt=1000):
     ir_l = ir_l / ir_l[mid]
     # get number of k point per directions
     nb = np.array(np.round(n_reg * ir_l), dtype=np.int64)
+    #nb[nb<1] = 1
+
+    return nb
+
+def get_kpts(frame,Nkpt=1000):
+    ir_cell = frame.get_reciprocal_cell()
+    ir_l = np.linalg.norm(ir_cell, axis=1)
+
+    n_kpt = float(Nkpt) / frame.get_number_of_atoms()
+    # makes sure there are at least 3 kpts per directions
+    if n_kpt < 27:
+        n_kpt = 27
+
+    fac = np.power(n_kpt * frame.get_volume(), 1. / 3.)
+
+    # get number of k point per directions
+    nb = np.array(np.round(fac * ir_l), dtype=np.int64)
+    # nb[nb<1] = 1
 
     return nb
     

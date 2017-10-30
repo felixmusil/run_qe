@@ -225,7 +225,8 @@ def change_submission(fn, replace_dict=None, add_dict=None):
         if add_dict is not None:
             for name, val in add_dict.iteritems():
                 if name in line:
-                    destination.write(line)
+                    if not mod:
+                        destination.write(line)
                     destination.write('#SBATCH ' + val + " \n")
                     mod = True
         if not mod:

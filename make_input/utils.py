@@ -205,3 +205,31 @@ def change_input(fn, replace_dict=None, add_dict=None):
 
     source.close()
     destination.close()
+
+def change_submission(fn, replace_dict=None, add_dict=None):
+    new_fn = check_suffix(fn + ".bak")
+
+    shutil.move(fn, new_fn)
+
+    destination = open(fn, "w")
+    source = open(new_fn, "r")
+
+    for line in source:
+
+        mod = False
+        if replace_dict is not None:
+            for name, val in replace_dict.iteritems():
+                if name in line:
+                    destination.write('#SBATCH ' + val + " \n")
+                    mod = True
+        if add_dict is not None:
+            for name, val in add_dict.iteritems():
+                if name in line:
+                    destination.write(line)
+                    destination.write('#SBATCH ' + val + " \n")
+                    mod = True
+        if not mod:
+            destination.write(line)
+
+    source.close()
+    destination.close()

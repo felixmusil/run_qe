@@ -121,6 +121,20 @@ def get_ibrav5_frame(frame, sg):
 
     return primitive_atoms, cell_par, inequivalent_pos
 
+
+def get_ibrav13_frame(frame, sg):
+
+    if isCellSkewed(frame):
+        primitive_atoms = unskewCell(frame)
+    else:
+        primitive_atoms = frame
+
+    inequivalent_pos = primitive_atoms.get_scaled_positions()[0].reshape((1, -1))
+
+    cell_par = primitive_atoms.get_cell_lengths_and_angles()
+    #cell_par = cell_par[[1,0,2]]
+    return primitive_atoms, cell_par, inequivalent_pos
+
 def get_ibrav8_frame(frame, sg):
     '''
     

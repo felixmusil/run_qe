@@ -3,7 +3,7 @@ import numpy as np
 import spglib as spg
 from custom_frame import frame2qe_format,get_standard_frame
 from utils import get_kpts
-
+from raw_info import Ang2au
 from SSSP_acc_PBE_info import PP_names,rhocutoffs,wfccutoffs
 
 # List of the Space groups that do not need special care
@@ -27,7 +27,7 @@ NOPROBLEM = [
 
 
 # List of spacegroups that need ibrav0 input type
-ibrav0 = [1,2] + [5, 8, 9, 12, 15]
+ibrav0 = [1,2]
 
 notimplemented_sg = [9]
 
@@ -38,8 +38,8 @@ frame2change = {
 
 
 # list of sg for which wyckoff position label should not be printed
-dont_print_wyck = [4, 7, 19, 19, 29, 33, 76, 78, 144,
-                   145, 169, 170, 225, 226, 227, 228]
+dont_print_wyck = [4, 7,9, 19, 19, 29, 33, 76, 78, 144,
+                   145, 169, 170, 225, 226, 227, 228,]
 
 def makeQEInput(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
                 zatom = 14,rhocutoff = None,wfccutoff = None,
@@ -157,6 +157,7 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
     cosAC = np.cos(cellParam[4] * d2r)
     cosBC = np.cos(cellParam[5] * d2r)
 
+
     # define name list of QE
     control = {'calculation' : calculation_type,
               'outdir' : outdir,
@@ -175,6 +176,8 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
         }
     controlKeys = ['calculation', 'outdir','wfcdir', 'prefix', 'pseudo_dir','disk_io', 'restart_mode',
                    'verbosity', 'wf_collect','tprnfor','tstress','nstep', 'etot_conv_thr', 'forc_conv_thr']
+
+
     system = {
               'ecutrho' :   '{:.0f}'.format(rhocutoff),
               'ecutwfc' :   '{:.0f}'.format(wfccutoff),
@@ -194,11 +197,22 @@ def makeQEInput_sg(crystal,spaceGroupIdx,WyckTable,SGTable,ElemTable,
               'cosAB' : '{:.5f}'.format(cosAB),
               'cosAC' : '{:.5f}'.format(cosAC),
               'cosBC' : '{:.5f}'.format(cosBC),
+              'celldm(1)': str(cellParam[0] * Ang2au),
+              'celldm(2)': str(cellParam[1] / cellParam[0]),
+              'celldm(3)': str(cellParam[2] / cellParam[0]),
+              'celldm(4)': '{:.5f}'.format(cosAB),
+              'celldm(5)': '{:.5f}'.format(cosAC),
+              'celldm(6)': '{:.5f}'.format(cosBC),
         }
+    if ibrav == -13:
+        syskeys = ['ecutrho', 'ecutwfc', 'ibrav', 'nat', 'ntyp',
+                   'occupations', 'smearing', 'degauss', 'space_group', 'uniqueb', 'rhombohedral',
+                   'celldm(1)', 'celldm(2)', 'celldm(3)', 'celldm(4)', 'celldm(5)', 'celldm(6)']
+    else:
+        syskeys = ['ecutrho', 'ecutwfc', 'ibrav', 'nat', 'ntyp',
+                   'occupations', 'smearing', 'degauss', 'space_group', 'uniqueb','rhombohedral',
+                   'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC']
 
-    syskeys = ['ecutrho', 'ecutwfc', 'ibrav', 'nat', 'ntyp',
-               'occupations', 'smearing', 'degauss', 'space_group', 'uniqueb','rhombohedral',
-               'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC']
     # syskeys = [ 'ecutrho','ecutwfc','ibrav', 'nat','nbnd','ntyp' ,
     #            'occupations', 'smearing','degauss','space_group','uniqueb','A','B' ,'C', 'cosAB', 'cosAC', 'cosBC' ]
     electrons = {'conv_thr':'{:.8f}'.format(scf_conv_thr)}

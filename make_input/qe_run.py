@@ -38,19 +38,25 @@ def run_qe_local(input,dirName,verbose=False,
     return exitState,error
 
 
-deneb = {'sbatch':'#SBATCH --constrain=E5v2 ',
-         'module':'module load intel/17.0.2  intel-mpi/2017.2.174 intel-mkl/2017.2.174 ' ,
-          'p2pw':'/home/musil/source/qe-6.1/bin/pw.x' , }
 
+hpcs = {
+    'deneb':{
+        'sbatch':'#SBATCH --constrain=E5v2 ',
+         'module':'module load intel/17.0.2  intel-mpi/2017.2.174 intel-mkl/2017.2.174 ' ,
+          'p2pw':'/home/musil/source/qe-6.1/bin/pw.x' ,
+    },
+    'fidis':{
+        'sbatch':' ',
+         'module':'module load intel  intel-mpi intel-mkl ' ,
+          'p2pw':'/home/musil/source/qe-6.1/bin/pw.x ' ,
+    }
+}
 
 def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
                        workdir='/scratch/musil/qmat/run_qe/', node=1, tasks_per_node=1,
                        cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
-    if hpc == 'deneb':
-        config = deneb
-    else:
-        print 'hpc not recognized'
-        return None
+
+    config = hpcs[hpc]
 
     ndl = '\n'
     sbatch = '#!/bin/bash {ndl}\
@@ -71,6 +77,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
         sbatch += '#SBATCH --partition=debug '+ ndl
     if cpus_per_tasks > 1:
         sbatch += 'export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK '+ ndl
+        sbatch += 'export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK ' + ndl
     sbatch += ndl
 
     module = 'module purge ' + ndl

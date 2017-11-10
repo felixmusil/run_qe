@@ -2,14 +2,14 @@ import numpy as np
 from utils import rotation_matrix,isCellSkewed,unskewCell,get_symprec,get_relative_angle
 import ase
 import spglib as spg
-from qe_input import SG2ibrav, ibrav0,NOPROBLEM
-from raw_info import sgwyck2qewyck,z2symb
 
-def frame2qe_format_new(crystal,sites_z,sym_data):
+from raw_info import sgwyck2qewyck,z2symb,sgwyck2qeibrav5
 
+def frame2qe_format_new(crystal,sites_z,sym_data,force_ibrav0):
+    from qe_input import SG2ibrav, ibrav0, NOPROBLEM
     sg = sym_data['number']
 
-    if sg in ibrav0:
+    if sg in ibrav0 or force_ibrav0:
         custom_frame, cell_par, positions_data = get_ibrav0_frame_new(crystal)
     elif sg in NOPROBLEM:
         custom_frame, cell_par, positions_data = get_frame_no_mod_new(crystal, sites_z, sym_data)
@@ -26,7 +26,7 @@ def get_frame_no_mod_new(crystal, sites_z, sym_data):
 
     spaceGroupIdx = sym_data['number']
     positions_data = {'wyckoffs': [],'species': [],'positions': []}
-
+    aa = []
     for it, equi in enumerate(sym_data['equivalent_atoms']):
         if equi > len(sites_z):
             raise NotImplementedError('There are too many inequivalent positions {} '
@@ -34,11 +34,11 @@ def get_frame_no_mod_new(crystal, sites_z, sym_data):
                 np.unique(sym_data['equivalent_atoms']), sites_z))
 
 
-        if equi not in positions_data.keys():
+        if equi not in aa:
             positions_data['wyckoffs'].append(sgwyck2qewyck[(spaceGroupIdx,sym_data['wyckoffs'][it])])
             positions_data['species'].append(z2symb[sym_data['std_types'][it]])
-            positions_data['positions'].append(list(crystal.get_scaled_positions()[it].reshape((1, -1))))
-
+            positions_data['positions'].append(crystal.get_scaled_positions()[it])
+            aa.append(equi)
 
     # QE takes the a from the standard cell and not the primitive one
     cell_par = crystal.get_cell_lengths_and_angles()
@@ -46,26 +46,24 @@ def get_frame_no_mod_new(crystal, sites_z, sym_data):
     return crystal.copy(), cell_par, positions_data
 
 def get_ibrav5_frame_new(crystal, sites_z, sym_data):
-
+    from raw_info import sgwyck2qeibrav5
     spaceGroupIdx = sym_data['number']
     positions_data = {'wyckoffs': [], 'species': [], 'positions': []}
-
+    primitive_atoms = get_std_frame(crystal)
+    aa = []
     for it, equi in enumerate(sym_data['equivalent_atoms']):
         if equi > len(sites_z):
             raise NotImplementedError('There are too many inequivalent positions {} '
                                       'compared to the sites {}'.format(
                 np.unique(sym_data['equivalent_atoms']), sites_z))
 
-        if equi not in positions_data.keys():
-            positions_data['wyckoffs'].append(sgwyck2qewyck[(spaceGroupIdx, sym_data['wyckoffs'][it])])
+        if equi not in aa:
+            positions_data['wyckoffs'].append(sgwyck2qeibrav5[(spaceGroupIdx, sym_data['wyckoffs'][it])])
             positions_data['species'].append(z2symb[sym_data['std_types'][it]])
-            positions_data['positions'].append(list(crystal.get_scaled_positions()[it].reshape((1, -1))))
+            positions_data['positions'].append(primitive_atoms.get_scaled_positions()[it])
+            aa.append(equi)
 
-    (lattice, positions, numbers) = spg.standardize_cell(
-        crystal, to_primitive=True, no_idealize=False,
-        symprec=1e-5, angle_tolerance=-1.0)
 
-    primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
     cell_par = primitive_atoms.get_cell_lengths_and_angles()
 
     return primitive_atoms, cell_par, positions_data
@@ -78,10 +76,17 @@ def get_ibrav0_frame_new(crystal):
     primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
     # primitive_atoms = frame
     cell = primitive_atoms.get_cell()
-    pos = primitive_atoms.get_positions()
+    pos = [list(pp) for pp in primitive_atoms.get_positions()]
     species = primitive_atoms.get_chemical_symbols()
     positions_data = { 'species': species, 'positions': pos}
     return primitive_atoms, cell, positions_data
+
+def get_std_frame(crystal,to_primitive=True,symprec=1e-5):
+    (lattice, positions, numbers) = spg.standardize_cell(
+        crystal, to_primitive=to_primitive, no_idealize=False,
+        symprec=symprec, angle_tolerance=-1.0)
+    std_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
+    return std_atoms
 
 ibrav2func_new = {
     5:get_ibrav5_frame_new,

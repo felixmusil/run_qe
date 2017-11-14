@@ -61,7 +61,6 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     ndl = '\n'
     sbatch = '#!/bin/bash {ndl}\
 #SBATCH --job-name={name} {ndl} \
-#SBATCH --workdir {workdir} {ndl}\
 #SBATCH --nodes {node} {ndl}\
 #SBATCH --tasks-per-node {tasks} {ndl}\
 #SBATCH --contiguous {ndl}\
@@ -93,9 +92,11 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_no
                dry_run=False,
                 cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
     path = make_dir(dirName)
-    inputName = os.path.abspath(path+'/qe.in')
+    # inputName = os.path.abspath(path+'/qe.in')
+    inputName = './qe.in'
     submit_scriptName = os.path.abspath(path+'/qe.sh')
-    outputName = os.path.abspath(path+'/qe.out')
+    # outputName = os.path.abspath(path+'/qe.out')
+    outputName =  './qe.out'
     jobName = os.path.abspath(path+'/job.id')
     errName = os.path.abspath(path+'/job.err')
 

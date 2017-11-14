@@ -5,7 +5,7 @@ from make_input.qe_run import run_qe_hpc
 from tqdm import tqdm
 from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs
 
-dry_run = True
+dry_run = False
 
 calculation_type = '"vc-relax"'
 
@@ -65,6 +65,7 @@ pbar = tqdm(total=len(dirNames),ascii=True)
 for it,dirName in dirNames.iteritems():
     crystal = crystals[it]
 
+
     input_str = makeQEInput_new(crystal, sites_z, symprec=symprec,
                                 rhocutoff=rhocutoff, wfccutoff=wfccutoff,
                                 calculation_type=calculation_type, smearing=smearing,
@@ -82,5 +83,6 @@ for it,dirName in dirNames.iteritems():
 
     pbar.update()
 
+    break
 
 pbar.close()

@@ -76,7 +76,7 @@ for it,dirName in dirNames.iteritems():
                                 kpt=kpt, Nkpt=Nkpt, kpt_offset=[0, 0, 0],
                                 ppPath=ppPath)
 
-    print dirName
+
     exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
                     tasks_per_node=tasks,name='{}'.format(it),dry_run=dry_run,
                     cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)

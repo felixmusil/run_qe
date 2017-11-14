@@ -92,11 +92,9 @@ def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_no
                dry_run=False,
                 cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
     path = make_dir(dirName)
-    # inputName = os.path.abspath(path+'/qe.in')
-    inputName = './qe.in'
+    inputName = os.path.abspath(path+'/qe.in')
     submit_scriptName = os.path.abspath(path+'/qe.sh')
-    # outputName = os.path.abspath(path+'/qe.out')
-    outputName =  './qe.out'
+    outputName = os.path.abspath(path+'/qe.out')
     jobName = os.path.abspath(path+'/job.id')
     errName = os.path.abspath(path+'/job.err')
 

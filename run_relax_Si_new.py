@@ -12,7 +12,7 @@ calculation_type = '"vc-relax"'
 sites_z = [14]
 
 kpt = [2,2,2]
-Nkpt = 5000
+Nkpt = 3000
 # rhocutoff ,wfccutoff = None,None
 rhocutoff ,wfccutoff = [], []
 for zatom in sites_z:

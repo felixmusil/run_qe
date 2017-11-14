@@ -34,9 +34,9 @@ node = 1
 tasks = 14
 cpus_per_tasks = 2
 mem = 63000
-time = '00:30:00'
-debug = True
-dry_run = True
+time = '20:00:00'
+debug = False
+dry_run = False
 
 dataPath = '/scratch/musil/qmat/data/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'

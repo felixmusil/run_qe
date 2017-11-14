@@ -35,8 +35,8 @@ node = 1
 tasks = 14
 cpus_per_tasks = 2
 mem = 63000
-time = '24:00:00'
-debug = False
+time = '00:30:00'
+debug = True
 
 dataPath = '/scratch/musil/qmat/data/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'
@@ -76,7 +76,7 @@ for it,dirName in dirNames.iteritems():
                                 kpt=kpt, Nkpt=Nkpt, kpt_offset=[0, 0, 0],
                                 ppPath=ppPath)
 
-
+    print dirName
     exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
                     tasks_per_node=tasks,name='{}'.format(it),dry_run=dry_run,
                     cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)

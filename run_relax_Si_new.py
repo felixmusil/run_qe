@@ -5,6 +5,7 @@ from make_input.qe_run import run_qe_hpc
 from tqdm import tqdm
 from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs
 
+dry_run = True
 
 calculation_type = '"vc-relax"'
 
@@ -45,14 +46,14 @@ fileNames = {}
 
 structurePath = './structures/'
 
-fileNames['crystals'] = structurePath + 'structures_131117.pck'
+fileNames['crystals'] = structurePath + 'structures_141117.pck'
 
 
 with open(fileNames['crystals'],'rb') as f:
     crystals = pck.load(f)
 
-dirNames = {it:dataPath + 'run_relax_Si/idx_{}'.format(it)
-            for it, crystal in enumerate(crystals)}
+dirNames = {it:dataPath + 'run_relax_Si_new/idx_{}'.format(it)
+            for it, _ in enumerate(crystals)}
 
 # crystal = crystals[sg][it]
 # dirName = dataPath + 'test_run/sg_{}-f_{}'.format(sg,it)
@@ -75,13 +76,11 @@ for it,dirName in dirNames.iteritems():
                                 ppPath=ppPath)
 
 
-
     exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
-                    tasks_per_node=tasks,name='{}'.format(it),
+                    tasks_per_node=tasks,name='{}'.format(it),dry_run=dry_run,
                     cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     pbar.update()
 
-    break
 
 pbar.close()

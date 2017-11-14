@@ -90,6 +90,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     return sbatch + module + cmd
 
 def run_qe_hpc(input_str,dirName,verbose=False,hpc='deneb', node=1, tasks_per_node=1,
+               dry_run=False,
                 cpus_per_tasks=1, mem=63000, time='00:10:00', debug=False,name='qe.sh'):
     path = make_dir(dirName)
     inputName = os.path.abspath(path+'/qe.in')

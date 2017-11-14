@@ -85,7 +85,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     module += ndl
 
     cmd = 'srun '
-    cmd += config['p2pw'] + ' ' + '-in ' + os.path.basename(input_fn) +' > '+ os.path.basename(output_fn) +' '+ ndl
+    cmd += config['p2pw'] + ' ' + '-in ' + os.path.basename(input_fn) +' > '+ output_fn +' '+ ndl
 
     return sbatch + module + cmd
 

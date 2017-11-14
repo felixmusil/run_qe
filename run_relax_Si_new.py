@@ -5,7 +5,7 @@ from make_input.qe_run import run_qe_hpc
 from tqdm import tqdm
 from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs
 
-dry_run = False
+
 
 calculation_type = '"vc-relax"'
 
@@ -22,7 +22,6 @@ for zatom in sites_z:
 rhocutoff = np.max(rhocutoff)
 wfccutoff = np.max(wfccutoff)
 
-
 smearing = 1e-3
 etot_conv_thr = 1e-4
 forc_conv_thr = 1e-4
@@ -35,8 +34,9 @@ node = 1
 tasks = 14
 cpus_per_tasks = 2
 mem = 63000
-time = '00:30:00'
-debug = True
+time = '15:00:00'
+debug = False
+dry_run = False
 
 dataPath = '/scratch/musil/qmat/data/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'
@@ -83,6 +83,6 @@ for it,dirName in dirNames.iteritems():
 
     pbar.update()
 
-    break
+
 
 pbar.close()

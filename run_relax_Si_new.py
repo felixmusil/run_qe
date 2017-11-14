@@ -34,7 +34,7 @@ node = 1
 tasks = 14
 cpus_per_tasks = 2
 mem = 63000
-time = '15:00:00'
+time = '24:00:00'
 debug = False
 dry_run = False
 

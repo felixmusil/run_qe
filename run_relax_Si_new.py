@@ -38,6 +38,9 @@ time = '20:00:00'
 debug = True
 dry_run = False
 
+if debug:
+    time = '00:30:00'
+
 dataPath = '/scratch/musil/qmat/data/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'
 

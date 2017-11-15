@@ -35,7 +35,7 @@ tasks = 14
 cpus_per_tasks = 2
 mem = 63000
 time = '20:00:00'
-debug = True
+debug = False
 dry_run = False
 
 if debug:

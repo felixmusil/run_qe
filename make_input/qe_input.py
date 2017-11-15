@@ -245,7 +245,7 @@ def makeQEInput_sg_new(crystal, sites_z,cell_par,positions_data,sym_data,
     qeInput += makeNamelist('&ELECTRONS', electrons)
     if calculation_type == '"vc-relax"':
         # seems like this algorithm is not as reliable as bfgs
-        #cell.update({'cell_dynamics': '"damp-w"'})
+        cell.update({'cell_dynamics': '"damp-w"'})
         ions = {'ion_dynamics': '"bfgs"', }
         qeInput += makeNamelist('&IONS', ions)
 

@@ -35,7 +35,7 @@ tasks = 14
 cpus_per_tasks = 2
 mem = 63000
 time = '20:00:00'
-debug = False
+debug = True
 dry_run = False
 
 dataPath = '/scratch/musil/qmat/data/'
@@ -83,6 +83,6 @@ for it,dirName in dirNames.iteritems():
 
     pbar.update()
 
-
+    break
 
 pbar.close()

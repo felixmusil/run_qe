@@ -86,6 +86,5 @@ for it,dirName in dirNames.iteritems():
 
     pbar.update()
 
-    break
 
 pbar.close()

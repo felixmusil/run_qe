@@ -81,7 +81,7 @@ for it,dirName in dirNames.iteritems():
 
 
     exitstatus = run_qe_hpc(input_str,dirName,verbose=False,hpc=hpc, node=node,
-                    tasks_per_node=tasks,name='{}'.format(it),dry_run=dry_run,
+                    tasks_per_node=tasks,name='id_{}'.format(it),dry_run=dry_run,
                     cpus_per_tasks=cpus_per_tasks, mem=mem, time=time, debug=debug)
 
     pbar.update()

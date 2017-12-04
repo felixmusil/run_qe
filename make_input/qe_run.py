@@ -66,6 +66,7 @@ def make_submit_script(hpc='deneb', input_fn='qe.in', output_fn='qe.out',
     ndl = '\n'
     sbatch = '#!/bin/bash {ndl}\
 #SBATCH --job-name={name} {ndl} \
+#SBATCH --workdir {workdir} {ndl} \
 #SBATCH --nodes {node} {ndl}\
 #SBATCH --tasks-per-node {tasks} {ndl}\
 #SBATCH --contiguous {ndl}\

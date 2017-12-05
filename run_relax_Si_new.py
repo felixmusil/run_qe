@@ -36,13 +36,13 @@ cpus_per_tasks = 1
 mem = 63000
 time = '20:00:00'
 debug = False
-dry_run = True
+dry_run = False
 
 if debug:
     time = '00:30:00'
 
-# dataPath = '/scratch/musil/qmat/data/'
-dataPath = '/local/git/run_qe/test_run/'
+dataPath = '/scratch/musil/qmat/data/'
+# dataPath = '/home/musil/git/run_qe/test_run/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'
 
 

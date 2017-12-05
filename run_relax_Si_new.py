@@ -29,19 +29,20 @@ nstep = 100
 scf_conv_thr = 1e-6
 symprec = 1e-5
 
-hpc = 'fidis'
+hpc = 'deneb'
 node = 1
-tasks = 14
-cpus_per_tasks = 2
+tasks = 16
+cpus_per_tasks = 1
 mem = 63000
 time = '20:00:00'
 debug = False
-dry_run = False
+dry_run = True
 
 if debug:
     time = '00:30:00'
 
-dataPath = '/scratch/musil/qmat/data/'
+# dataPath = '/scratch/musil/qmat/data/'
+dataPath = '/local/git/run_qe/test_run/'
 ppPath='"/home/musil/git/run_qe/pseudo/SSSP_acc_PBE/"'
 
 

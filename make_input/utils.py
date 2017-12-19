@@ -1,5 +1,5 @@
 import numpy as np
-from raw_info import missClassificationCorrection
+#from raw_info import missClassificationCorrection
 import spglib as spg
 import shutil,os
 

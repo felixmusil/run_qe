@@ -1,13 +1,10 @@
-import cPickle as pck
 import numpy as np
-
 from read_output.qe_reader import read_qe
 from make_input.qe_input import makeQEInput_new
-from make_input.qe_run import run_qe_hpc
 from make_input.SSSP_acc_PBE_info import wfccutoffs,rhocutoffs
 import argparse
-
-
+from ase.spacegroup import crystal
+import spglib as spg
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="""Creates a QE input file from the last geometry of a pw output file. 
@@ -64,6 +61,20 @@ if __name__ == '__main__':
     symprec = 1e-5
 
     crystal = read_qe(fn_qe_out)[-1]
+
+    sym_data = spg.get_symmetry_dataset(crystal)
+
+    if len(np.unique(sym_data['equivalent_atoms'])) > len(sites_z):
+        raise ValueError('The input structure has more sites than expected: {}>{}'.format(
+            len(np.unique(sym_data['equivalent_atoms'])), len(sites_z)
+        ))
+
+    symbols = []
+    asym_positions = []
+    # cell.
+
+    cc = crystal(symbols=symbols, basis=asym_positions, spacegroup=sg,
+                 cellpar=cell, symprec=1e-7, pbc=True, primitive_cell=False)
 
 
     input_str = makeQEInput_new(crystal, sites_z, symprec=symprec,

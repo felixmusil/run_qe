@@ -49,7 +49,9 @@ def makeQEInput_new(crystal,sites_z,symprec=1e-5,
         restart_mode = '"restart"'
 
     sym_data = spg.get_symmetry_dataset(crystal,symprec=symprec)
-
+    if np.unique(sym_data['equivalent_atoms']).size != len(sites_z):
+        raise ValueError('The structure has different number of '
+                         'sites than expected: detected {} / expected {}'.format(np.unique(sym_data['equivalent_atoms']).size,len(sites_z)))
     spaceGroupIdx = sym_data['number']
     if spaceGroupIdx in ibrav0:
         force_ibrav0 = True
@@ -101,19 +103,19 @@ def makeQEInput_sg_new(crystal, sites_z,cell_par,positions_data,sym_data,
         mass.append(info['mass'])
         PP.append(PP_names[site_z])
 
+    Ntype = len(unique_species)
+
     if force_ibrav0:
         ibrav = 0
         cellParam = np.ones((6,))
         spaceGroupIdx = None
+        Natom = len(positions_data['positions'])
+
     else:
         ibrav = SG2ibrav(spaceGroupIdx)
         cellParam = cell_par
+        Natom = len(unique_species)
 
-    (lattice, positions, numbers) = spg.standardize_cell(
-        crystal, to_primitive=True, no_idealize=False,
-        symprec=1e-5, angle_tolerance=-1.0)
-    cc = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
-    Natom = cc.get_number_of_atoms()
 
     if ibrav == -12:
         uniqueb = '.TRUE.'
@@ -121,8 +123,6 @@ def makeQEInput_sg_new(crystal, sites_z,cell_par,positions_data,sym_data,
         uniqueb = '.TRUE.'
     else:
         uniqueb = '.FALSE.'
-
-
 
     # nbnd = get_number_of_bands(Natom=Natom, Nvalence=nvalence)
 
@@ -168,9 +168,9 @@ def makeQEInput_sg_new(crystal, sites_z,cell_par,positions_data,sym_data,
         'ecutrho': '{:.0f}'.format(rhocutoff),
         'ecutwfc': '{:.0f}'.format(wfccutoff),
         'ibrav': str(ibrav),
-        'nat': str(1),
+        'nat': str(Natom),
         # 'nbnd' : str(nbnd),
-        'ntyp': str(1),
+        'ntyp': str(Ntype),
         'occupations': '"smearing"',
         'smearing': '"cold"',
         'degauss': '{:.6f}'.format(smearing),
@@ -627,7 +627,7 @@ def makeCard(cardDict,cardKeys=None,optionKey='unit',
                     wyckoffs = val['wyckoffs']
                     positions = val['positions']
                     species = val['species']
-
+                    # print positions
                     for wyck, pos, sp in zip(wyckoffs, positions, species):
                         mask = sgwyck2qemask[(sg, wyck)]
 

@@ -2,12 +2,17 @@ import numpy as np
 from utils import rotation_matrix,isCellSkewed,unskewCell,get_symprec,get_relative_angle
 import ase
 import spglib as spg
-
-from raw_info import sgwyck2qewyck,z2symb,sgwyck2qeibrav5
+from collections import OrderedDict
+from raw_info import sgwyck2qewyck,z2symb,sgwyck2qeibrav5,sgwyck2site_generator,sgwyck2qemask,sgwyck2qewyck
 
 def frame2qe_format_new(crystal,sites_z,sym_data,force_ibrav0):
     from qe_input import SG2ibrav, ibrav0, NOPROBLEM
     sg = sym_data['number']
+
+    if np.unique(sym_data['equivalent_atoms']) > len(sites_z):
+        raise NotImplementedError('There are too many inequivalent positions {} '
+                                  'compared to the sites {}'.format(
+            np.unique(sym_data['equivalent_atoms']), sites_z))
 
     if sg in ibrav0 or force_ibrav0:
         custom_frame, cell_par, positions_data = get_ibrav0_frame_new(crystal)
@@ -24,57 +29,134 @@ def frame2qe_format_new(crystal,sites_z,sym_data,force_ibrav0):
 
 def get_frame_no_mod_new(crystal, sites_z, sym_data):
 
+
     spaceGroupIdx = sym_data['number']
     positions_data = {'wyckoffs': [],'species': [],'positions': []}
     aa = []
+    # positions = crystal.get_scaled_positions()
+    # species = crystal.get_atomic_numbers()
+    # positions = np.mod(np.round(primitive_atoms.get_scaled_positions(),decimals=7),[1,1,1])
+
+    positions = np.mod(np.round(sym_data['std_positions'],decimals=7),[1,1,1])
+    species = sym_data['std_types']
+
     for it, equi in enumerate(sym_data['equivalent_atoms']):
-        if equi > len(sites_z):
-            raise NotImplementedError('There are too many inequivalent positions {} '
-                                      'compared to the sites {}'.format(
-                np.unique(sym_data['equivalent_atoms']), sites_z))
 
+        sgwyck = (spaceGroupIdx,sym_data['wyckoffs'][it])
+        site_generator = sgwyck2site_generator[sgwyck]
+        match_generator = is_matching_generator(positions[it], site_generator)
 
-        if equi not in aa:
-            positions_data['wyckoffs'].append(sgwyck2qewyck[(spaceGroupIdx,sym_data['wyckoffs'][it])])
-            positions_data['species'].append(z2symb[sym_data['std_types'][it]])
-            positions_data['positions'].append(crystal.get_scaled_positions()[it])
+        # print '######'
+        # print positions[it], site_generator
+        # print match_generator
+        if equi not in aa and match_generator is True:
+            positions_data['wyckoffs'].append(sgwyck2qewyck[sgwyck])
+            positions_data['species'].append(z2symb[species[it]])
+            positions_data['positions'].append(positions[it])
             aa.append(equi)
 
-    # QE takes the a from the standard cell and not the primitive one
-    cell_par = crystal.get_cell_lengths_and_angles()
+        if len(positions_data['positions']) == len(sites_z):
+            break
+    if len(positions_data['positions']) == 0:
+        print str(sgwyck) + ','
 
+    # QE takes the a from the standard cell and not the primitive one
+    # cell_par = crystal.get_cell_lengths_and_angles()
+    cell_par = ase.geometry.cell_to_cellpar(sym_data['std_lattice'])
     return crystal.copy(), cell_par, positions_data
 
 def get_ibrav5_frame_new(crystal, sites_z, sym_data):
     from raw_info import sgwyck2qeibrav5
+    primitive_atoms = get_std_frame(crystal)
+    sym_data = spg.get_symmetry_dataset(primitive_atoms)
     spaceGroupIdx = sym_data['number']
     positions_data = {'wyckoffs': [], 'species': [], 'positions': []}
-    primitive_atoms = get_std_frame(crystal)
+
     aa = []
+    # positions = sym_data['std_positions'] np.mod(sym_data['std_positions'],[1,1,1])
+
+    positions = np.mod(np.round(primitive_atoms.get_scaled_positions(),decimals=7),[1,1,1])
+    species = primitive_atoms.get_atomic_numbers()
+
     for it, equi in enumerate(sym_data['equivalent_atoms']):
-        if equi > len(sites_z):
-            raise NotImplementedError('There are too many inequivalent positions {} '
-                                      'compared to the sites {}'.format(
-                np.unique(sym_data['equivalent_atoms']), sites_z))
 
-        if equi not in aa:
-            positions_data['wyckoffs'].append(sgwyck2qeibrav5[(spaceGroupIdx, sym_data['wyckoffs'][it])])
-            positions_data['species'].append(z2symb[sym_data['std_types'][it]])
-            positions_data['positions'].append(primitive_atoms.get_scaled_positions()[it])
+        sgwyck = (spaceGroupIdx, sym_data['wyckoffs'][it])
+        site_generator = sgwyck2site_generator[sgwyck]
+        match_generator = is_matching_generator(positions[it],site_generator)
+
+        # print '######'
+        # print positions[it], site_generator
+        # print match_generator
+        if equi not in aa and match_generator is True:
+            positions_data['wyckoffs'].append(sgwyck2qeibrav5[sgwyck])
+            positions_data['species'].append(z2symb[species[it]])
+            positions_data['positions'].append(positions[it])
             aa.append(equi)
+        if len(positions_data['positions']) == len(sites_z):
+            break
 
+    if len(positions_data['positions']) == 0:
+        print str(sgwyck)+','
 
     cell_par = primitive_atoms.get_cell_lengths_and_angles()
 
     return primitive_atoms, cell_par, positions_data
 
+def is_matching_generator(position,site_generator):
+    match_generator = True
+    # check if the selected postitions are matching properly the site generator
+    # are the non free parameters in the proper place in positions[it]
+    is_str, is_float = OrderedDict(), OrderedDict()
+    for jj, (pos, s_gen) in enumerate(zip(position, site_generator)):
+        if isinstance(s_gen, float):
+            if np.abs(s_gen - pos) > 1e-5:
+                match_generator = False
+            is_float[jj] = s_gen
+        elif isinstance(s_gen, str):
+            is_str[jj] = s_gen
+
+    # are the free parameters in the proper order
+    if len(is_str) > 1 and site_generator != ['x', 'y', 'z']:
+
+        #x, y, z = position
+        for ii,s_gen in is_str.iteritems():
+            if 'x' == s_gen:
+                x = position[ii]
+            elif 'y' == s_gen:
+                y = position[ii]
+            elif 'z' == s_gen:
+                z = position[ii]
+
+            #print 'There is : {}'.format(site_generator)
+
+
+        if len(is_str) == 3:
+            # TODO should replace eval with something safer
+            ppos = map(eval, is_str.values())
+        elif len(is_str) == 2:
+            ppos = np.zeros(3)
+            ppos[is_str.keys()] = map(eval, is_str.values())
+            ppos[is_float.keys()] = is_float.values()
+        # print positions[it],pp
+        ppos = np.mod(np.round(ppos, decimals=7), [1, 1, 1])
+        # print '#########'
+        # print x
+        # print is_str
+        # print position, ppos
+        if not np.allclose(position, ppos, atol=1e-3):
+            match_generator = False
+
+    return match_generator
+
+
+
 def get_ibrav0_frame_new(crystal):
 
-    (lattice, positions, numbers) = spg.standardize_cell(
-        crystal, to_primitive=True,no_idealize=False,
-                            symprec=1e-5, angle_tolerance=-1.0)
-    primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
-    # primitive_atoms = frame
+    # (lattice, positions, numbers) = spg.standardize_cell(
+    #     crystal, to_primitive=False,no_idealize=False,
+    #                         symprec=1e-5, angle_tolerance=-1.0)
+    # primitive_atoms = ase.Atoms(cell=lattice, scaled_positions=positions, numbers=numbers)
+    primitive_atoms = crystal
     cell = primitive_atoms.get_cell()
     pos = [list(pp) for pp in primitive_atoms.get_positions()]
     species = primitive_atoms.get_chemical_symbols()
